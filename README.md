@@ -37,6 +37,18 @@ php artisan init
 
 Also, you can set up apache/nginx web server pointing to `my-chia-farm/public`.
 
+## First run
+
+After you installed and launched My Chia Farm go to `settings` page and set `Chia installation path`.
+
+Next go to `jobs` page and configure your desired settings, events and start points. Each worker doing the job will fire
+events configured for this one to entry system. And all jobs will listen to those events and start desired number of
+workers.
+
+And finally open `dashboard` and click play button on job you want to run.
+
+I hope it seems intuitive. Later I will create wiki with full description.
+
 ## Bugs and issues
 
 - There is no user input validation yet on jobs configurations. Please, check yourself.

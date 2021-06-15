@@ -1,8 +1,8 @@
 {
-    "name": "laravel/laravel",
+    "name": "lozovoyv/my-chia-farm",
     "type": "project",
-    "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
+    "description": "My Chia Farm project.",
+    "keywords": ["chia", "web"],
     "license": "MIT",
     "require": {
         "php": "^8.0",

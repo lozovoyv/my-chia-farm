@@ -44,16 +44,17 @@ class MCFConfig
      * Get MCF config value or whole config set.
      *
      * @param string|null $key
+     * @param null $default Default value to be returned if key not exists
      *
      * @return  mixed
      */
-    public function get(?string $key = null): mixed
+    public function get(?string $key = null, $default = null): mixed
     {
         if ($key === null) {
             return $this->config;
         }
 
-        return Arr::get($this->config, $key);
+        return Arr::get($this->config, $key, $default);
     }
 
     /**

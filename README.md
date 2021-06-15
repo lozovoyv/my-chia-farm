@@ -3,11 +3,39 @@
 MyChiaFarm is a web application created to give you control on your chia-blockchain node from everywhere over the
 internet with nice GUI.
 
+## PRERELEASE INFO
+
+This is pre-release version and developed for Linux only for now. Support for Windows and Mac will be added in the
+future. The primary focus was on plotting process managing, automating and optimization. And yes, second focus will be
+on system resources monitoring. But, whole platform concept gives more flexibility, not only plotting. I have some ideas
+which way to develop this project (see below) and, of course, community demands and wishes would be realized to the best
+of my ability.
+
 ## Features
 
 - Event driven plotting manager for multiple configurable jobs.
 
 ## Installation
+
+Install `php 8.0` and `ext-pdo`
+
+Install composer: [getcomposer.org/download/](https://getcomposer.org/download/)
+
+Install `git`
+
+```shell
+git clone https://github.com/lozovoyv/my-chia-farm
+
+cd my-chia-farm
+
+composer install
+
+php artisan init
+
+## and follow onscreen instructions.
+```
+
+Also, you can set up apache/nginx web server pointing to `my-chia-farm/public`.
 
 ## Bugs and issues
 
@@ -19,7 +47,7 @@ If you found some bugs or issues please [report issue](https://github.com/lozovo
 ## Sponsor/support this project
 
 Developing this project takes a lots of time. I will be glad to get your help in developing and keeping this project up
-to date by pushing PR or buying some time I could spend on this project =).
+to date. Just push PR or buy me some time I could spend on this project =).
 
 - XCH: xch10v9f4ev5uesp4nlukgydxxk8fhkszwn8kzwr2cjwljwd47f06wqslrmlgx
 - BTC: bc1q6ax4058we962dkqs0vpyvh3y2vp9vkpymyl2t6

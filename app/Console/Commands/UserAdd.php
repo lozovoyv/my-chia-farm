@@ -29,11 +29,11 @@ class UserAdd extends Command
      */
     public function handle(): int
     {
-        $this->info('Creating new user...');
+        $this->info("\nCreating new user...\n");
 
-        $userEmail = $this->hasArgument('user')
-            ? $this->argument('user')
-            : $this->ask('Enter email of user to change password');
+        if (($userEmail = $this->argument('user')) === null) {
+            $userEmail = $this->ask('Enter email of user');
+        }
 
         if (User::query()->where('email', $userEmail)->count() > 0) {
             $this->error('User with this email already exists');

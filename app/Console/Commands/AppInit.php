@@ -28,7 +28,7 @@ class AppInit extends Command
      */
     public function handle(): int
     {
-        $this->info('Initializing application...');
+        $this->info("\nInitializing application...\n");
 
         $basePath = $this->laravel->basePath();
 
@@ -58,12 +58,13 @@ class AppInit extends Command
 
         // Print instructions
         $php = PHP_BINARY;
-        $this->info('Application is nearly ready to run. Several things left to do:');
-        $this->info("1. Check (and fix) your timezone in `$basePath/.env` file (TZ=%your_time_zone%)");
+        $this->info("\nApplication is nearly ready to run. Several things left to do:\n");
+        $this->info("1. Check (and fix) your timezone in `$basePath/.env` file (TZ=%your_time_zone%)\n");
         $this->info("2. Setup your job scheduler (typically cron) to run `php artisan cron:run` command every minute");
         $this->info('   For cron you need run `crontab -e`');
-        $this->info("   and add following: `* * * * * cd {$basePath} && {$php} artisan cron:run > /dev/null 2>&1`");
-        $this->info('3. Run `cd {$basePath} && php artisan:serve` command to run application on localhost or setup apache/nginx web server to have access through internet');
+        $this->info("   and add following: `* * * * * cd {$basePath} && {$php} artisan cron:run > /dev/null 2>&1`\n");
+        $this->info("3. Run `cd {$basePath} && php artisan:serve` command to run application on localhost or setup apache/nginx web server to have access through internet\n");
+        $this->info("4. Open your browser and type `http://localhost:8000` (port is typically 8000, but it can vary, see output of previous command)");
 
         return 0;
     }

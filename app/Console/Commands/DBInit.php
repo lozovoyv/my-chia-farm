@@ -27,7 +27,7 @@ class DBInit extends Command
      */
     public function handle(): int
     {
-        $this->info('Initializing database...');
+        $this->info("\nInitializing database...\n");
 
         // write database default path
         $dbPath = $this->laravel['config']['database.connections.sqlite.database'];
@@ -57,7 +57,7 @@ class DBInit extends Command
             }
         }
 
-        return $this->call('migrate');
+        return $this->call('migrate', ['--force' => true]);
     }
 
     /**

@@ -277,7 +277,7 @@ class Worker extends Model
     {
         if (($id = $this->getAttribute('id')) === null) return null;
 
-        return app()->storagePath() . DIRECTORY_SEPARATOR . 'process' . DIRECTORY_SEPARATOR . $id . '.txt';
+        return app()->basePath() . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . $id . '.txt';
     }
 
     /**

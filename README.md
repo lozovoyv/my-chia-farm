@@ -21,9 +21,9 @@ If you found some bugs or issues please [report issue](https://github.com/lozovo
 Developing this project takes a lots of time. I will be glad to get your help in developing and keeping this project up
 to date by pushing PR or buying some time I could spend on this project =).
 
-XCH: xch10v9f4ev5uesp4nlukgydxxk8fhkszwn8kzwr2cjwljwd47f06wqslrmlgx
-BTC: bc1q6ax4058we962dkqs0vpyvh3y2vp9vkpymyl2t6
-ETH: 0x35f7938c9F1C17305401048c68D0221966f47eCA
+- XCH: xch10v9f4ev5uesp4nlukgydxxk8fhkszwn8kzwr2cjwljwd47f06wqslrmlgx
+- BTC: bc1q6ax4058we962dkqs0vpyvh3y2vp9vkpymyl2t6
+- ETH: 0x35f7938c9F1C17305401048c68D0221966f47eCA
 
 ## Lots of work planned ahead:
 

@@ -34,12 +34,12 @@ class CreateWorkersTable extends Migration
             $table->string('tmp_dir')->nullable();
             $table->string('tmp2_dir')->nullable();
             $table->string('final_dir')->nullable();
-            $table->boolean('disable_bitfield')->default(false);
-            $table->boolean('skip_add')->default(false);
-            $table->boolean('cpu_affinity_enable')->default(false);
+            $table->boolean('disable_bitfield')->default(false)->nullable();
+            $table->boolean('skip_add')->default(false)->nullable();
+            $table->boolean('cpu_affinity_enable')->default(false)->nullable();
             $table->text('cpus')->nullable();
 
-            $table->boolean('save_log')->default(false);
+            $table->boolean('save_log')->default(false)->nullable();
 
             $table->timestamps();
         });

@@ -13,7 +13,10 @@ of my ability.
 
 ## Features
 
-- Event driven plotting manager for multiple configurable jobs.
+- Event driven plotting manager for multiple configurable jobs
+- Nice GUI
+- Accessible via internet from anywhere (with configured apache/nginx webserver)
+- Built-in webserver for local running
 
 ## Installation
 
@@ -35,7 +38,8 @@ php artisan init
 ## and follow onscreen instructions.
 ```
 
-Also, you can set up apache/nginx web server pointing to `my-chia-farm/public`.
+Also, you can set up apache/nginx web server pointing to `my-chia-farm/public` and add LetsEncrypt certificate to secure
+your connection.
 
 ## First run
 

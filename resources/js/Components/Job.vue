@@ -290,38 +290,38 @@ export default {
             return [...Array(this.cpu_count).keys()].map(i => 'CPU' + i);
         },
         farmerKey: function () {
-            return this.values.use_global_keys ? this.m_config.general.default_farmer_key : this.values.farmer_public_key;
+            return this.values.use_global_keys ? this.configGet('general', 'default_farmer_key') : this.values.farmer_public_key;
         },
         poolKey: function () {
-            return this.values.use_global_keys ? this.m_config.general.default_pool_key : this.values.pool_public_key;
+            return this.values.use_global_keys ? this.configGet('general', 'default_pool_key') : this.values.pool_public_key;
         },
         plotSize: function () {
-            return this.values.use_global_plot_size ? this.m_config.job.default_plot_size : this.values.plot_size;
+            return this.values.use_global_plot_size ? this.configGet('job', 'default_plot_size') : this.values.plot_size;
         },
         buckets: function () {
-            return this.values.use_global_buckets ? this.m_config.job.default_buckets : this.values.buckets;
+            return this.values.use_global_buckets ? this.configGet('job', 'default_buckets') : this.values.buckets;
         },
         buffer: function () {
-            return this.values.use_global_buffer ? this.m_config.job.default_buffer : this.values.buffer;
+            return this.values.use_global_buffer ? this.configGet('job', 'default_buffer') : this.values.buffer;
         },
         threads: function () {
-            return this.values.use_global_threads ? this.m_config.job.default_threads : this.values.threads;
+            return this.values.use_global_threads ? this.configGet('job', 'default_threads') : this.values.threads;
         },
         tmpDir: function () {
-            return this.values.use_global_tmp_dir ? this.m_config.job.default_tmp_dir : this.values.tmp_dir;
+            return this.values.use_global_tmp_dir ? this.configGet('job', 'default_tmp_dir') : this.values.tmp_dir;
         },
         tmp2Dir: function () {
-            const tmp2 = this.values.use_global_tmp2_dir ? this.m_config.job.default_tmp2_dir : this.values.tmp2_dir;
+            const tmp2 = this.values.use_global_tmp2_dir ? this.configGet('job', 'default_tmp2_dir') : this.values.tmp2_dir;
             return !!tmp2 ? tmp2 : 'disabled';
         },
         finalDir: function () {
-            return this.values.use_global_final_dir ? this.m_config.job.default_final_dir : this.values.final_dir;
+            return this.values.use_global_final_dir ? this.configGet('job', 'default_final_dir') : this.values.final_dir;
         },
         disableBitfield: function () {
-            return this.values.use_global_disable_bitfield ? this.m_config.job.default_disable_bitfield : this.values.disable_bitfield;
+            return this.values.use_global_disable_bitfield ? this.configGet('job', 'default_disable_bitfield') : this.values.disable_bitfield;
         },
         skipAdd: function () {
-            return this.values.use_global_skip_add ? this.m_config.job.default_skip_add : this.values.skip_add;
+            return this.values.use_global_skip_add ? this.configGet('job', 'default_skip_add') : this.values.skip_add;
         },
 
     },
@@ -516,7 +516,11 @@ export default {
 
         removeWorker(index) {
             this.values.starts.splice(index, 1);
-        }
+        },
+
+        configGet(key1, key2) {
+            return (typeof this.m_config[key1] !== 'undefined' && typeof this.m_config[key1][key2] !== 'undefined') ? this.m_config[key1][key2] : null;
+        },
     },
 }
 </script>

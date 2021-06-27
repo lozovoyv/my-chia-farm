@@ -10,9 +10,9 @@
 
 namespace App\Exceptions;
 
-use RuntimeException;
+use Exception;
 
-class WorkerException extends RuntimeException
+class SystemCommandException extends Exception
 {
 
 }

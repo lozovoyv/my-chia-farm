@@ -10,7 +10,9 @@
 
 namespace App\Exceptions;
 
-class ChiaCommandException extends \Exception
+use Exception;
+
+class ChiaCommandException extends Exception
 {
 
 }

@@ -1,96 +1,64 @@
 <?php
 /*
- * This file is part of the MyChiaFarm project.
+ *  This file is part of the MyChiaFarm project.
  *
- *   (c) Lozovoy Vyacheslav <lozovoyv@gmail.com>
+ *    (c) Lozovoy Vyacheslav <lozovoyv@gmail.com>
  *
  *  For the full copyright and license information, please view the LICENSE
  *  file that was distributed with this source code.
  */
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Exceptions\PlotterException;
+use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Job;
 use App\Models\Start;
 use App\Models\Worker;
-use Exception;
+use App\Traits\ReturnsJsonResponse;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use InvalidArgumentException;
 
 class JobController extends Controller
 {
-    /** @var array|string[] Filter for incoming job data */
-    protected static array $fieldFilter = [
-        'title',
-        'disable',
-        'use_global_keys',
-        'farmer_public_key',
-        'pool_public_key',
-        'number_of_plots',
-        'plots_done',
-        'plot_size',
-        'use_global_plot_size',
-        'buckets',
-        'use_global_buckets',
-        'buffer',
-        'use_global_buffer',
-        'threads',
-        'use_global_threads',
-        'tmp_dir',
-        'use_global_tmp_dir',
-        'tmp2_dir',
-        'use_global_tmp2_dir',
-        'final_dir',
-        'use_global_final_dir',
-        'skip_add',
-        'use_global_disable_bitfield',
-        'disable_bitfield',
-        'use_global_skip_add',
-        'cpu_affinity_enable',
-        'cpus',
-        'events_disable',
-        'max_workers',
-        'save_worker_monitor_log',
-        'number_of_worker_logs',
-    ];
+    use ReturnsJsonResponse;
 
     /**
      * Get list of jobs with events, starts and workers.
      *
      * @return  JsonResponse
      */
-    public function get(): JsonResponse
+    public function all(): JsonResponse
     {
         $jobs = Job::query()->with(['events', 'starts', 'workers'])->get();
 
-        return response()->json($jobs);
+        return $this->data($jobs);
     }
 
     /**
-     * Store a newly created job in storage.
+     * Store a newly created job.
      *
      * @param Request $request
      *
      * @return  JsonResponse
-     *
-     * @throws  Exception
      */
-    public function store(Request $request): JsonResponse
+    public function create(Request $request): JsonResponse
     {
         $job = new Job;
 
-        $job = $this->fillJobFromRequest($job, $request);
+        $job->fromRequest($request);
 
         $job->save();
 
         $this->updateJobRelations($job, $request);
 
-        $job->load(['events', 'starts']);
+        $job->load(['events', 'starts', 'workers']);
 
-        return response()->json($job);
+        return $this->successWithData($job, 'Job created');
     }
 
     /**
@@ -99,23 +67,27 @@ class JobController extends Controller
      * @param Request $request
      *
      * @return  JsonResponse
-     *
-     * @throws  Exception
      */
     public function update(Request $request): JsonResponse
     {
-        /** @var Job $job */
-        $job = Job::query()->where('id', $request->input('id'))->firstOrFail();
+        $id = $request->input('id');
 
-        $job = $this->fillJobFromRequest($job, $request);
+        /** @var Job $job */
+        $job = Job::query()->where('id', $id)->first();
+
+        if ($job === null) {
+            return $this->error('Job [%s] not found.', $id);
+        }
+
+        $job->fromRequest($request);
 
         $job->save();
 
         $this->updateJobRelations($job, $request);
 
-        $job->load(['events', 'starts']);
+        $job->load(['events', 'starts', 'workers']);
 
-        return response()->json($job);
+        return $this->successWithData($job, 'Job updated');
     }
 
     /**
@@ -124,8 +96,6 @@ class JobController extends Controller
      * @param Request $request
      *
      * @return  JsonResponse
-     *
-     * @throws  BindingResolutionException
      */
     public function remove(Request $request): JsonResponse
     {
@@ -135,40 +105,18 @@ class JobController extends Controller
         $workers = Worker::query()->where('job_id', $id)->get();
         foreach ($workers as $worker) {
             /** @var Worker $worker */
-            $worker->shutdown(false, 'Shutting down worker on job deletion');
+            try {
+                $worker->shutdown(false, 'Dismissed by user');
+            } catch (PlotterException | BindingResolutionException $e) {
+                return $this->error('Error while dismissing worker [%s]: %s', $worker->getAttribute('id'), $e->getMessage());
+            }
         }
 
-        Job::query()->where('id', $id)->delete();
         Event::query()->where('job_id', $id)->delete();
         Start::query()->where('job_id', $id)->delete();
+        Job::query()->where('id', $id)->delete();
 
-        return response()->json();
-    }
-
-    /**
-     * Fill job data from request.
-     *
-     * @param Job $job
-     * @param Request $request
-     *
-     * @return  Job
-     *
-     * @internal
-     */
-    protected function fillJobFromRequest(Job $job, Request $request): Job
-    {
-        $newAttributes = $request->only(self::$fieldFilter);
-
-        $attributes = $job->getAttributes();
-
-        // this fix is needed to cast cpus from json to array
-        $pinnedCPUs = $newAttributes['cpus'] ?? [];
-        unset($newAttributes['cpus']);
-
-        $job->setRawAttributes(array_merge($attributes, $newAttributes));
-        $job->setAttribute('cpus', $pinnedCPUs);
-
-        return $job;
+        return $this->success('Job deleted');
     }
 
     /**
@@ -179,14 +127,14 @@ class JobController extends Controller
      *
      * @return  void
      *
-     * @throws  Exception
+     * @throws  InvalidArgumentException
      *
      * @internal
      */
     protected function updateJobRelations(Job $job, Request $request): void
     {
         if (!$job->exists) {
-            throw new Exception('Can not update relations for non-existing model');
+            throw new InvalidArgumentException('Can not update relations for non-existing model');
         }
 
         // Make separation of incoming events to newly created and existing
@@ -271,14 +219,14 @@ class JobController extends Controller
      */
     protected function updateExistingRelations(string $class, array $existing, array $ids): void
     {
-        $existing = collect($existing)->keyBy('id');
+        $relations = collect($existing)->keyBy('id');
 
         /** @var Model $class */
         $assets = $class::query()->whereIn('id', $ids)->get();
 
         foreach ($assets as $asset) {
             /** @var Model $asset */
-            $asset->setRawAttributes($existing[$asset->getAttribute('id')]);
+            $asset->setRawAttributes($relations[$asset->getAttribute('id')]);
             $asset->save();
         }
     }

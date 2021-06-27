@@ -1,152 +1,129 @@
+<!--
+  -  This file is part of the MyChiaFarm project.
+  -
+  -    (c) Lozovoy Vyacheslav <lozovoyv@gmail.com>
+  -
+  -  For the full copyright and license information, please view the LICENSE
+  -  file that was distributed with this source code.
+  -->
+
 <template>
-    <breeze-authenticated-layout>
+    <authenticated-layout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Monitor
-            </h2>
+            <m-c-f-button :caption="'Add job'" :theme="'green'" :disabled="creating" @click="create"></m-c-f-button>
         </template>
 
-        <div class="my-4">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <breeze-button class="ml-4 py-3 bg-green-500 text-white" @click="addJob"
-                               :class="{ 'opacity-25 cursor-not-allowed': new_job}"
-                               :disabled="new_job"
-                >Add job
-                </breeze-button>
-            </div>
-        </div>
-
-        <div class="text-2xl text-center w-full py-10" v-if="jobs.length === 0 && !new_job">You haven't jobs yet.
+        <div class="text-2xl text-center w-full py-10" v-if="!hasJobs && !creating">You haven't jobs yet.
             Add one.
         </div>
 
-        <datalist id="events-list">
-            <option v-for="option in event_names">{{ option }}</option>
-        </datalist>
+        <m-c-f-job v-if="creating"
+                   :creating="true"
+                   :cpu_count="cpu_count"
+                   :plotters="plotters"
+                   :event_names="event_names"
+                   :now="now"
+                   @created="created"
+                   @discarded="discard"
+        ></m-c-f-job>
 
-        <job v-if="new_job"
-             :m_config="m_config"
-             :cpu_count="cpu_count"
-             :id="0"
-             :new_job="true"
-             :edit_mode_initial="true"
-             @discard-new-job="discardNew"
-             @create-job="createNew"
-        ></job>
+        <m-c-f-job v-for="(job, key) in jobs"
+                   :job_original="job"
+                   :deleted="job === null"
+                   :cpu_count="cpu_count"
+                   :plotters="plotters"
+                   :event_names="event_names"
+                   :now="now"
+                   @updated="$job => updated($job, key)"
+                   @removed="() => removed(key)"
+        ></m-c-f-job>
 
-        <job v-for="(job, key) in jobs"
-             :key="key"
-             :original="job"
-             :m_config="m_config"
-             :cpu_count="cpu_count"
-             :id="job === null ? -1 : job.id"
-             :new_job="false"
-             :deleted="job === null"
-             @change-job="changeJob"
-             @remove-job="removeJob"
-        ></job>
-
-    </breeze-authenticated-layout>
+    </authenticated-layout>
 </template>
 
 <script>
-import BreezeAuthenticatedLayout from '@/Layouts/Authenticated'
-import Job from '@/Components/Job'
-import Event from '@/Components/Event'
-import BreezeButton from '@/Components/Button';
-import axios from "axios";
-import * as Vue from "vue";
+// mixins
+import clone from "@/Helpers/clone";
+
+// components
+import AuthenticatedLayout from '@/Layouts/Authenticated'
+import MCFButton from '@/Components/Buttons/Button';
+import MCFJob from "@/Components/Job/Job";
+import empty from "@/Helpers/Lib/empty";
 
 export default {
     components: {
-        BreezeAuthenticatedLayout,
-        Job,
-        Event,
-        BreezeButton,
+        AuthenticatedLayout,
+        MCFButton,
+        MCFJob,
     },
+
+    mixins: [clone],
 
     props: {
         auth: Object,
         errors: Object,
-        m_config: Object,
+
+        now: String,
         cpu_count: Number,
+        plotters: Object,
+
         jobs_original: Array,
-        event_names_original: Array,
     },
 
     data: () => ({
-        jobs: Vue.reactive([]),
-        new_job: false,
-        event_names: []
+        creating: false,
+        jobs: [],
+        event_names: [],
     }),
 
+    computed: {
+        hasJobs() {
+            return this.jobs.length !== 0 && this.jobs.some(job => job !== null);
+        },
+    },
+
     created() {
-        this.jobs = Array.from(this.jobs_original);
-        this.event_names = Array.from(this.event_names_original);
+        this.jobs = this.clone(this.jobs_original);
+        this.collectEventNames();
     },
 
     methods: {
-        addJob() {
-            this.new_job = true;
+        create() {
+            this.creating = true;
         },
 
-        discardNew(id) {
-            this.new_job = false;
+        discard() {
+            this.creating = false;
         },
 
-        createNew(id, job) {
-            axios.post('/api/new-job', job)
-                .then((response) => {
-                    this.jobs.push(response.data);
-                    this.new_job = false;
-                    this.updateEventsNames();
-                })
-                .catch((error) => {
-                    console.log(error);
+        created(job) {
+            this.jobs.push(job);
+            this.discard();
+            this.collectEventNames();
+        },
+
+        updated(job, key) {
+            this.jobs[key] = job;
+            this.collectEventNames();
+
+        },
+
+        removed(key) {
+            this.jobs[key] = null;
+            this.collectEventNames();
+        },
+
+        collectEventNames() {
+            let names = [];
+            this.jobs.map(job => {
+                if (job === null || typeof job['events'] === 'undefined' || empty(job['events'])) return;
+                job['events'].map(event => {
+                    if (typeof event['name'] !== 'undefined' && !empty(event['name'])) names.push(event['name']);
                 });
-        },
-
-        changeJob(id, job) {
-            axios.post('/api/update-job', job)
-                .then((response) => {
-                    // update job original
-                    this.jobs.some((j, i) => {
-                        if (j !== null && j.id === id) {
-                            this.jobs[i] = job;
-                            return true;
-                        }
-                        return false;
-                    });
-                    this.updateEventsNames();
-                    // todo message
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        },
-
-        removeJob(id) {
-            axios.post('/api/remove-job', {id: id})
-                .then((response) => {
-                    // remove job
-                    this.jobs.some((j, i) => {
-                        if (j !== null && j.id === id) {
-                            this.jobs[i] = null;
-                            return true;
-                        }
-                        return false;
-                    });
-                    this.updateEventsNames();
-                    // todo message
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        },
-
-        updateEventsNames() {
-            console.log('need to update event names');
-        },
+            });
+            this.event_names = names;
+        }
     }
 }
 </script>

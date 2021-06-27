@@ -1,7 +1,16 @@
+<!--
+  -  This file is part of the MyChiaFarm project.
+  -
+  -    (c) Lozovoy Vyacheslav <lozovoyv@gmail.com>
+  -
+  -  For the full copyright and license information, please view the LICENSE
+  -  file that was distributed with this source code.
+  -->
+
 <template>
     <div class="px-6 my-4">
         <div class="block font-medium text-sm text-gray-700">
-            <span v-if="label">{{ label }}</span>
+            <span v-if="title">{{ title }}</span>
             <div
                 class="text-base h-10 border border-gray-300 focus:border-indigo-300 px-3 py-2 rounded-md shadow-sm mt-1 block w-full relative bg-white">
                 <div @click="open = ! open" class="cursor-pointer">
@@ -31,28 +40,24 @@
                          style="display: none;"
                          @click="open = false">
                         <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 bg-white">
-                            <p class="px-4 py-1 cursor-pointer hover:bg-green-300" v-for="(value, key) in values"
+                            <p class="px-4 py-1 cursor-pointer hover:bg-green-300" v-for="(value, key) in options"
                                :key="key" @click="$emit('update:modelValue', value)">{{ value }}</p>
                         </div>
                     </div>
                 </transition>
             </div>
+            <span v-if="!valid" class="text-red-700 mr-1 mt-1 block">{{ errorMessage }}</span>
         </div>
     </div>
 </template>
 
 <script>
-import BreezeDropdown from "@/Components/Dropdown";
 import {onMounted, onUnmounted, ref} from "vue";
 
 export default {
     name: "Select",
 
-    components: {
-        BreezeDropdown,
-    },
-
-    props: ['modelValue', 'values', 'label'],
+    props: ['modelValue', 'title', 'inputType', 'required', 'options', 'valid', 'errorMessage'],
 
     emits: ['update:modelValue'],
 

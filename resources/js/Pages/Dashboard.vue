@@ -1,61 +1,57 @@
 <template>
-    <breeze-authenticated-layout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Dashboard
-            </h2>
-        </template>
-
-        <dash-job v-for="(job, key) in current_jobs"
+    <authenticated-layout>
+        <job v-for="(job, key) in jobs"
                   :key="key"
                   :original="job"
-                  @changed="updateStatus"
+                  @changed="update"
         />
-    </breeze-authenticated-layout>
+    </authenticated-layout>
 </template>
 
 <script>
-import BreezeAuthenticatedLayout from '@/Layouts/Authenticated';
-import DashJob from '@/Components/DashJob';
+import AuthenticatedLayout from '@/Layouts/Authenticated';
+import Job from '@/Components/Dashboard/Job';
 
 import axios from "axios";
+import clone from "@/Helpers/Lib/clone";
 
 export default {
     components: {
-        BreezeAuthenticatedLayout,
-        DashJob,
+        AuthenticatedLayout,
+        Job,
     },
 
     props: {
         auth: Object,
         errors: Object,
-        jobs: Array,
+        jobs_original: Array,
     },
 
     data: () => ({
-        current_jobs: [],
+        jobs: [],
         timer: null,
         updating: false,
     }),
 
     created() {
-        this.current_jobs = this.jobs;
+        this.jobs = clone(this.jobs_original);
 
-        this.timer = setInterval(this.updateStatus, 2000);
+        this.timer = setInterval(this.update, 5000);
     },
 
     methods: {
-        updateStatus() {
+        update() {
             if (this.updating) return;
 
             this.updating = true;
 
-            axios.post('/api/get-jobs', {})
+            axios.post('/api/job/all', {})
                 .then((response) => {
-                    this.current_jobs = Array.from(response.data);
+                    this.jobs = clone(response.data['data']);
                 })
                 .catch((error) => {
-                    console.log(error);
+                    const message = error.response.data['message'];
+                    console.log(message);
                 })
                 .finally(() => {
                     this.updating = false;

@@ -14,3 +14,4 @@ yarn-error.log
 composer.lock
 .idea
 package-lock.json
+mcf_config.yaml

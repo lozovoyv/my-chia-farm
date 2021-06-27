@@ -49,12 +49,10 @@ class DBInit extends Command
         }
 
         // run database migration
-        if (!file_exists($dbPath)) {
-            if (!touch($dbPath)) {
-                $this->error('Can\'t create database file.');
+        if (!file_exists($dbPath) && !touch($dbPath)) {
+            $this->error('Can\'t create database file.');
 
-                return 1;
-            }
+            return 1;
         }
 
         return $this->call('migrate', ['--force' => true]);
@@ -69,7 +67,7 @@ class DBInit extends Command
      *
      * @return  void
      */
-    protected function writeNewEnvironmentFileWith(string $envKey, string $configKey, string $value)
+    protected function writeNewEnvironmentFileWith(string $envKey, string $configKey, string $value): void
     {
         file_put_contents($this->laravel->environmentFilePath(), preg_replace(
             $this->keyReplacementPattern($configKey, $envKey),

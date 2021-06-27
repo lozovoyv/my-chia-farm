@@ -1,4 +1,12 @@
 <?php
+/*
+ *  This file is part of the MyChiaFarm project.
+ *
+ *    (c) Lozovoy Vyacheslav <lozovoyv@gmail.com>
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -9,44 +17,50 @@ class CreateJobsTable extends Migration
     /**
      * Run the migrations.
      *
-     * @return void
+     * @return  void
      */
-    public function up()
+    public function  up(): void
     {
         Schema::create('mp_jobs', function (Blueprint $table) {
             $table->id();
             $table->string('title')->nullable();
-            $table->boolean('disable')->default(false);
-            $table->boolean('use_global_keys')->default(true);
-            $table->string('farmer_public_key')->nullable();
-            $table->string('pool_public_key')->nullable();
-            $table->integer('number_of_plots', false, true)->default(0);
-            $table->integer('plots_done', false, true)->default(0);
-            $table->boolean('use_global_plot_size')->default(true);
-            $table->smallInteger('plot_size', false, true)->default(32);
-            $table->boolean('use_global_buckets')->default(true);
-            $table->smallInteger('buckets', false, true)->default(128);
-            $table->boolean('use_global_buffer')->default(true);
-            $table->smallInteger('buffer', false, true)->default(3389);
-            $table->boolean('use_global_threads')->default(true);
-            $table->smallInteger('threads', false, true)->default(2);
-            $table->boolean('use_global_tmp_dir')->default(true);
-            $table->string('tmp_dir')->nullable();
-            $table->boolean('use_global_tmp2_dir')->default(true);
-            $table->string('tmp2_dir')->nullable();
-            $table->boolean('use_global_final_dir')->default(true);
-            $table->string('final_dir')->nullable();
-            $table->boolean('use_global_disable_bitfield')->default(true);
-            $table->boolean('disable_bitfield')->default(false);
-            $table->boolean('use_global_skip_add')->default(true);
-            $table->boolean('skip_add')->default(false);
-            $table->boolean('cpu_affinity_enable')->default(false);
-            $table->text('cpus')->nullable();
-            $table->boolean('events_disable')->default(false);
-            $table->smallInteger('max_workers', false, true)->default(0);
-            $table->boolean('save_worker_monitor_log')->default(false);
-            $table->smallInteger('number_of_worker_logs')->default(0);
 
+            // General
+            $table->integer('plots_to_do', false, true)->nullable();
+            $table->integer('plots_done', false, true)->nullable();
+            $table->string('plotter_alias')->nullable();
+
+            $table->boolean('disable_workers_start')->nullable();
+            $table->smallInteger('max_workers', false, true)->nullable();
+            $table->boolean('disable_events_emitting')->nullable();
+
+            // Replotting
+            $table->boolean('remove_oldest')->nullable();
+            $table->timestamp('removing_stop_ts')->nullable();
+
+            // Commands
+            $table->boolean('pre_command_enabled')->nullable();
+            $table->string('pre_command')->nullable();
+            $table->boolean('post_command_enabled')->nullable();
+            $table->string('post_command')->nullable();
+
+            // Attributes
+            $table->text('arguments')->nullable();
+            $table->text('use_globals_for')->nullable();
+
+            // CPU affinity
+            $table->boolean('cpu_affinity_enable')->nullable();
+            $table->text('cpus')->nullable();
+
+            // Logging
+            $table->boolean('save_worker_log')->nullable();
+            $table->smallInteger('number_of_worker_logs')->nullable();
+
+            // Advanced
+            $table->boolean('use_default_executable')->nullable();
+            $table->string('executable')->nullable();
+
+            // System
             $table->softDeletes();
             $table->timestamps();
         });
@@ -55,9 +69,9 @@ class CreateJobsTable extends Migration
     /**
      * Reverse the migrations.
      *
-     * @return void
+     * @return  void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('jobs');
     }

@@ -30,6 +30,7 @@ use App\Events\Worker\PreProcessFinishedEvent;
 use App\Events\Worker\PreProcessStartedEvent;
 use App\Events\Worker\WorkerDoneEvent;
 use App\Events\WorkerStateEvent;
+use App\Events\ReplottingEvent;
 
 class Worker extends Model
 {
@@ -230,6 +231,8 @@ class Worker extends Model
         Log::debug(sprintf('Worker [%s] started. PID: %s', $this->getAttribute('id'), $pid));
 
         $this->fire(PlottingStartedEvent::class);
+
+        ReplottingEvent::dispatch($this->getAttribute('job_id'), $this->plotter()->getDestination());
     }
 
     /**
@@ -480,7 +483,7 @@ class Worker extends Model
 
         // Update plot file name only if it was not set and exists in state.
         if ($state->plotFileName() !== null && $this->getAttribute('plot_file_name') === null) {
-            $destination = trim($this->plotter()->getDestination(), ' \t\n\r\0\x0B\\/');
+            $destination = rtrim($this->plotter()->getDestination(), ' \t\n\r\0\x0B\\/');
             $filename = trim($state->plotFileName(), ' \t\n\r\0\x0B\\/');
             $this->setAttribute('plot_file_name', $destination . DIRECTORY_SEPARATOR . $filename);
         }

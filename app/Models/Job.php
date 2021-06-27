@@ -17,6 +17,7 @@ use App\Events\Worker\JobDoneEvent;
 use App\Exceptions\JobException;
 use App\Exceptions\PlotterException;
 use App\Exceptions\WorkerException;
+use Carbon\Carbon;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -229,6 +230,8 @@ class Job extends Model
      * @throws  JobException
      * @throws  PlotterException
      * @throws  BindingResolutionException
+     *
+     * @internal
      */
     protected function createWorker(): Worker
     {
@@ -250,6 +253,8 @@ class Job extends Model
      * @return  string
      *
      * @throws  JobException
+     *
+     * @internal
      */
     protected function composePlotterAlias(): string
     {
@@ -267,6 +272,8 @@ class Job extends Model
      *
      * @throws  JobException
      * @throws  BindingResolutionException
+     *
+     * @internal
      */
     protected function composeExecutable(): string
     {
@@ -294,6 +301,8 @@ class Job extends Model
      * @throws  JobException
      * @throws  PlotterException
      * @throws  BindingResolutionException
+     *
+     * @internal
      */
     protected function composeArguments(): array
     {
@@ -410,6 +419,8 @@ class Job extends Model
 
     /**
      * Increase plots done counter and check last worker finished job to fire job done event.
+     *
+     * @return  void
      */
     public function iterationDone(): void
     {
@@ -430,5 +441,19 @@ class Job extends Model
         if ($toDo === $done && $this->nowWorkingCount() !== 1) {
             JobDoneEvent::dispatch($this->getAttribute('id'));
         }
+    }
+
+    /**
+     * Returns date limit of replotting if it set or null otherwise.
+     *
+     * @return  Carbon|null
+     */
+    public function getRePlotLimit(): ?Carbon
+    {
+        if ($this->getAttribute('remove_oldest') !== true) {
+            return null;
+        }
+
+        return Carbon::parse($this->getAttribute('removing_stop_ts'));
     }
 }

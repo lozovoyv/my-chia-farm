@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Events\JobEvent;
+use App\Events\ReplottingEvent;
 use App\Events\Worker\JobDoneEvent;
 use App\Events\Worker\PlottingFinishedEvent;
 use App\Events\Worker\PlottingStartedEvent;
@@ -13,6 +14,7 @@ use App\Events\Worker\PreProcessStartedEvent;
 use App\Events\Worker\WorkerDoneEvent;
 use App\Events\WorkerStateEvent;
 use App\Listeners\JobEventsListener;
+use App\Listeners\ReplottingListener;
 use App\Listeners\WorkerFinishedListener;
 use App\Listeners\WorkerStageChangeListener;
 use App\Listeners\WorkerStateListener;
@@ -39,5 +41,7 @@ class EventServiceProvider extends ServiceProvider
         PostProcessFinishedEvent::class => [WorkerStageChangeListener::class],
         WorkerDoneEvent::class => [WorkerFinishedListener::class, WorkerStageChangeListener::class],
         JobDoneEvent::class => [WorkerStageChangeListener::class],
+        // replotting event
+        ReplottingEvent::class => [ReplottingListener::class],
     ];
 }

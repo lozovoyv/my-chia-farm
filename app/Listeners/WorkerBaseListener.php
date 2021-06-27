@@ -11,14 +11,31 @@
 namespace App\Listeners;
 
 use App\Events\Helpers\WorkerEventInterface;
-use App\Events\WorkerStateEvent;
 use App\Models\Event;
-use Illuminate\Support\Facades\Log;
 
-class WorkerStateListener extends WorkerBaseListener
+abstract class WorkerBaseListener
 {
     /**
-     * Process worker state changed event.
+     * Handle the worker state changed event.
+     *
+     * @param WorkerEventInterface $event
+     *
+     * @return  void
+     */
+    public function handle(WorkerEventInterface $event): void
+    {
+        if ($event->events() === null) {
+            return;
+        }
+
+        foreach ($event->events() as $workerEvent) {
+            /** @var Event $workerEvent */
+            $this->processEvent($workerEvent, $event);
+        }
+    }
+
+    /**
+     * Event processing stub.
      *
      * @param Event $event
      * @param WorkerEventInterface $workerEvent
@@ -27,15 +44,6 @@ class WorkerStateListener extends WorkerBaseListener
      */
     protected function processEvent(Event $event, WorkerEventInterface $workerEvent): void
     {
-        /** @var WorkerStateEvent $workerEvent */
-
-        Log::debug(sprintf('Checking job [%s] event [%s] to be fired', $workerEvent->jobId, $event->name()));
-
-        if ($event->isTimeToFire($workerEvent)) {
-
-            $event->writeEventRecord();
-
-            Log::debug(sprintf('Emitting event [%s]', $event->getAttribute('name')));
-        }
+        // Do event processing
     }
 }

@@ -10,25 +10,23 @@
 
 namespace App\Listeners;
 
-use App\Events\WorkerFinishedEvent;
-use App\Models\Job;
+use App\Events\Worker\WorkerDoneEvent;
 
 class WorkerFinishedListener
 {
     /**
      * Handle the worker finished event.
      *
-     * @param WorkerFinishedEvent $event
+     * @param WorkerDoneEvent $event
      *
      * @return  void
      */
-    public function handle(WorkerFinishedEvent $event): void
+    public function handle(WorkerDoneEvent $event): void
     {
-        /** @var Job $job */
-        $job = Job::query()->where('id', $event->worker->getAttribute('job_id'))->first();
-        if ($job === null) return;
+        if ($event->job() === null) {
+            return;
+        }
 
-        $job->setAttribute('plots_done', $job->getAttribute('plots_done') + 1);
-        $job->save();
+        $event->job()->iterationDone();
     }
 }

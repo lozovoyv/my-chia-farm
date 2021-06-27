@@ -10,11 +10,14 @@
 
 namespace App\Events;
 
+use App\Events\Helpers\WorkerEventInterface;
+use App\Events\Helpers\WorkerEventTrait;
 use Illuminate\Foundation\Events\Dispatchable;
 
-class WorkerStateEvent
+class WorkerStateEvent implements WorkerEventInterface
 {
-    use Dispatchable;
+    use Dispatchable,
+        WorkerEventTrait;
 
     public int $jobId;
     public int $oldPhase;

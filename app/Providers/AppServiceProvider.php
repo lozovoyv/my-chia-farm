@@ -14,9 +14,7 @@ use App\Classes\Commands\ChiaCommands;
 use App\Classes\Commands\SystemCommands;
 use App\Classes\Commands\ChiaCommandsLinux;
 use App\Classes\Commands\SystemCommandsLinux;
-use App\Classes\LogParser;
 use App\Classes\MCFConfig;
-use App\Classes\OriginalLogParser;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -26,10 +24,10 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return  void
      */
-    public function register()
+    public function register(): void
     {
         // Register My Chia Farm config instance
-        $filename = $this->app->storagePath() . DIRECTORY_SEPARATOR . 'maxplot.yaml';
+        $filename = $this->app->basePath() . DIRECTORY_SEPARATOR . 'mcf_config.yaml';
         $config = new MCFConfig($filename);
         $this->app->instance(MCFConfig::class, $config);
 
@@ -37,8 +35,5 @@ class AppServiceProvider extends ServiceProvider
         // TODO: add another OSs
         $this->app->bind(ChiaCommands::class, ChiaCommandsLinux::class);
         $this->app->bind(SystemCommands::class, SystemCommandsLinux::class);
-
-        // Bind log parser
-        $this->app->bind(LogParser::class, OriginalLogParser::class);
     }
 }

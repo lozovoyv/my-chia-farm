@@ -10,9 +10,6 @@
 
 namespace App\Classes\Commands;
 
-use App\Exceptions\ChiaCommandException;
-use App\Models\Worker;
-
 interface ChiaCommands
 {
     /**
@@ -23,28 +20,4 @@ interface ChiaCommands
      * @return  array|null
      */
     public function getKeys(string $installationPath): ?array;
-
-    /**
-     * Run command for plotting.
-     *
-     * @param string $f
-     * @param string $p
-     * @param int $k
-     * @param int $u
-     * @param int $b
-     * @param int $r
-     * @param string $t
-     * @param string $t2
-     * @param string $d
-     * @param bool $e
-     * @param bool $x
-     * @param bool $affinity
-     * @param array|null $cpus
-     * @param string $log
-     *
-     * @return  int
-     *
-     * @throws  ChiaCommandException
-     */
-    public function makePlot(string $f, string $p, int $k, int $u, int $b, int $r, string $t, string $t2, string $d, bool $e, bool $x, bool $affinity, ?array $cpus, string $log): int;
 }

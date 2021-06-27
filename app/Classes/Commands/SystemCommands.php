@@ -10,6 +10,8 @@
 
 namespace App\Classes\Commands;
 
+use App\Exceptions\SystemCommandException;
+
 interface SystemCommands
 {
     /**
@@ -36,4 +38,27 @@ interface SystemCommands
      * @return  void
      */
     public function killProcess(int $pid): void;
+
+    /**
+     * Apply CPU affinity settings to command.
+     *
+     * @param string $command
+     * @param bool $enabled
+     * @param array $cores
+     *
+     * @return  string wrapped command
+     */
+    public function applyCPUAffinity(string $command, bool $enabled, array $cores): string;
+
+    /**
+     * Run command in background and return pid of process.
+     *
+     * @param string $command
+     * @param string|null $output
+     *
+     * @return  int PID of process
+     *
+     * @throws  SystemCommandException
+     */
+    public function runInBackground(string $command, ?string $output): int;
 }

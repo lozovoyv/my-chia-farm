@@ -13,6 +13,7 @@ namespace App\Listeners;
 use App\Events\ReplottingEvent;
 use App\Models\Job;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ReplottingListener
 {
@@ -37,6 +38,8 @@ class ReplottingListener
         if ($rePlotLimit === null) {
             return;
         }
+
+        Log::debug(sprintf('Checking for replotting in [%s] with limit [%s]', $event->destination, $rePlotLimit->format('Y:m:d H:i:s')));
 
         $this->removeOldest($event->destination, $rePlotLimit);
     }
@@ -67,6 +70,7 @@ class ReplottingListener
         }
 
         if ($name !== null && Carbon::parse($ts) <= $limit) {
+            Log::debug(sprintf('Unlinking [%s]', $name));
             unlink($name);
         }
     }

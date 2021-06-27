@@ -26,7 +26,7 @@ class DispatchEventsJob implements ShouldQueue
      *
      * @return  void
      */
-    public function handle()
+    public function handle(): void
     {
         $now = Carbon::now();
 
@@ -34,7 +34,7 @@ class DispatchEventsJob implements ShouldQueue
         DB::table('mp_job_events')->where('fire_at', '<=', $now)->delete();
 
         foreach ($events as $event) {
-            Log::debug("Processing event {$event->job_event_name}");
+            Log::debug("Processing event $event->job_event_name");
             JobEvent::dispatch($event->job_event_name, $event->fire_at, $event->created_at);
         }
     }

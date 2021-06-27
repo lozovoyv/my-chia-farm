@@ -10,10 +10,18 @@
 
 namespace App\Models;
 
+use App\Classes\MCFConfig;
+use App\Classes\Plotters\Mapper;
+use App\Classes\Plotters\PlotterInterface;
+use App\Events\Worker\JobDoneEvent;
+use App\Exceptions\JobException;
+use App\Exceptions\PlotterException;
+use App\Exceptions\WorkerException;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Http\Request;
 
 class Job extends Model
 {
@@ -22,31 +30,27 @@ class Job extends Model
     protected $table = 'mp_jobs';
 
     protected $casts = [
-        'disable' => 'bool',
-        'use_global_keys' => 'bool',
-        'number_of_plots' => 'int',
+        'title' => 'string',
+        'plotter_alias' => 'string',
+        'plots_to_do' => 'int',
         'plots_done' => 'int',
-        'use_global_plot_size' => 'bool',
-        'plot_size' => 'int',
-        'use_global_buckets' => 'bool',
-        'buckets' => 'int',
-        'use_global_buffer' => 'bool',
-        'buffer' => 'int',
-        'use_global_threads' => 'bool',
-        'threads' => 'int',
-        'use_global_tmp_dir' => 'bool',
-        'use_global_tmp2_dir' => 'bool',
-        'use_global_final_dir' => 'bool',
-        'use_global_disable_bitfield' => 'bool',
-        'disable_bitfield' => 'bool',
-        'use_global_skip_add' => 'bool',
-        'skip_add' => 'bool',
+        'disable_workers_start' => 'bool',
+        'max_workers' => 'int',
+        'disable_events_emitting' => 'bool',
+        'pre_command_enabled' => 'bool',
+        'pre_command' => 'string',
+        'post_command_enabled' => 'bool',
+        'post_command' => 'string',
+        'arguments' => 'array',
+        'use_globals_for' => 'array',
         'cpu_affinity_enable' => 'bool',
         'cpus' => 'array',
-        'events_disable' => 'bool',
-        'max_workers' => 'int',
-        'save_worker_monitor_log' => 'bool',
+        'save_worker_log' => 'bool',
         'number_of_worker_logs' => 'int',
+        'remove_oldest' => 'bool',
+        'removing_stop_ts' => 'datetime:Y-m-d H:i:s',
+        'use_default_executable' => 'boolean',
+        'executable' => 'string',
     ];
 
     /**
@@ -80,6 +84,30 @@ class Job extends Model
     }
 
     /**
+     * Get job title.
+     *
+     * @return  string
+     */
+    public function title(): string
+    {
+        return $this->getAttribute('title');
+    }
+
+    /**
+     * Fill job attributes from request.
+     *
+     * @param Request $request
+     *
+     * @return  void
+     */
+    public function fromRequest(Request $request): void
+    {
+        foreach (array_keys($this->casts) as $key) {
+            $this->setAttribute($key, $request->input($key));
+        }
+    }
+
+    /**
      * Calculate how many workers of desired quantity can start.
      *
      * @param int $desired
@@ -101,10 +129,12 @@ class Job extends Model
      */
     public function getMaxWorkers(): ?int
     {
-        if ($this->getAttribute('disable')) return 0;
+        if ($this->getAttribute('disable_workers_start')) {
+            return 0;
+        }
 
         // how many plots can be done
-        $plotsToDo = $this->getAttribute('number_of_plots');
+        $plotsToDo = $this->getAttribute('plots_to_do');
 
         // how many workers can do this job
         $maxWorkers = $this->getAttribute('max_workers');
@@ -129,10 +159,14 @@ class Job extends Model
             : $maxWorkers - $nowWorking;
 
         // infinite plots, limited workers
-        if ($plotsLeft === null) return $workersLeft;
+        if ($plotsLeft === null) {
+            return $workersLeft;
+        }
 
         // infinite workers, limited plots
-        if ($workersLeft === null) return $plotsLeft;
+        if ($workersLeft === null) {
+            return $plotsLeft;
+        }
 
         return min($plotsLeft, $workersLeft);
     }
@@ -153,6 +187,16 @@ class Job extends Model
     }
 
     /**
+     * Check if events emitting is enabled for this job.
+     *
+     * @return  bool
+     */
+    public function isEventsEnabled(): bool
+    {
+        return !$this->getAttribute('disable_events_emitting');
+    }
+
+    /**
      * Start a number of workers for this job.
      *
      * @param int $numberOfWorkers
@@ -160,6 +204,9 @@ class Job extends Model
      * @return  void
      *
      * @throws  BindingResolutionException
+     * @throws  PlotterException
+     * @throws  JobException
+     * @throws  WorkerException
      */
     public function start(int $numberOfWorkers): void
     {
@@ -175,41 +222,119 @@ class Job extends Model
     }
 
     /**
-     * Run worker factory.
+     * Make worker with all properties.
      *
+     * @return  Worker
+     *
+     * @throws  JobException
+     * @throws  PlotterException
      * @throws  BindingResolutionException
-     *
-     * @internal
      */
     protected function createWorker(): Worker
     {
         return Worker::factory(
             $this->getAttribute('id'),
-            $this->getAttribute('use_global_keys'),
-            $this->getAttribute('farmer_public_key'),
-            $this->getAttribute('pool_public_key'),
-            $this->getAttribute('use_global_plot_size'),
-            $this->getAttribute('plot_size'),
-            $this->getAttribute('use_global_buckets'),
-            $this->getAttribute('buckets'),
-            $this->getAttribute('use_global_buffer'),
-            $this->getAttribute('buffer'),
-            $this->getAttribute('use_global_threads'),
-            $this->getAttribute('threads'),
-            $this->getAttribute('use_global_tmp_dir'),
-            $this->getAttribute('tmp_dir'),
-            $this->getAttribute('use_global_tmp2_dir'),
-            $this->getAttribute('tmp2_dir'),
-            $this->getAttribute('use_global_final_dir'),
-            $this->getAttribute('final_dir'),
-            $this->getAttribute('use_global_disable_bitfield'),
-            $this->getAttribute('disable_bitfield'),
-            $this->getAttribute('use_global_skip_add'),
-            $this->getAttribute('skip_add'),
+            $this->composePlotterAlias(),
+            $this->composeExecutable(),
+            $this->composeArguments(),
             $this->getAttribute('cpu_affinity_enable'),
             $this->getAttribute('cpus'),
-            $this->isLogForNewWorkerSaved()
+            $this->isLogForNewWorkerSaved(),
+
         );
+    }
+
+    /**
+     * Get plotter alias associated to job.
+     *
+     * @return  string
+     *
+     * @throws  JobException
+     */
+    protected function composePlotterAlias(): string
+    {
+        if (($alias = $this->getAttribute('plotter_alias')) === null) {
+            throw new JobException(sprintf('[%s] Has no proper plotter assigned to job', static::class));
+        }
+
+        return $alias;
+    }
+
+    /**
+     * Get executable path for job associated plotter.
+     *
+     * @return  string
+     *
+     * @throws  JobException
+     * @throws  BindingResolutionException
+     */
+    protected function composeExecutable(): string
+    {
+        $executable = $this->getAttribute('executable');
+
+        if (empty($executable)) {
+            /** @var MCFConfig $config */
+            $config = app()->make(MCFConfig::class);
+            $plotterAlias = $this->composePlotterAlias();
+            $executable = $config->get("plotting.plotters.$plotterAlias.executable");
+        }
+
+        if (empty($executable)) {
+            throw new JobException(sprintf('[%s] Has no proper plotter executable assigned to job', static::class));
+        }
+
+        return $executable;
+    }
+
+    /**
+     * Compose array of command arguments must be passed to worker with global overrides conditions.
+     *
+     * @return  array
+     *
+     * @throws  JobException
+     * @throws  PlotterException
+     * @throws  BindingResolutionException
+     */
+    protected function composeArguments(): array
+    {
+        // get job stored arguments
+        $arguments = $this->getAttribute('arguments');
+
+        // get arguments must be overridden by globals
+        $toFetchFromGlobals = $this->getAttribute('use_globals_for');
+
+        // get plotter alias
+        $plotterAlias = $this->composePlotterAlias();
+
+        // and class of plotter to read global keys override
+        /** @var PlotterInterface $plotterClass */
+        $plotterClass = Mapper::getClassOf($plotterAlias);
+
+        // get associations of plotter arguments with global config keys
+        $associations = $plotterClass::getGlobalDefaultsAssociations();
+
+        /** @var MCFConfig $config */
+        $config = app()->make(MCFConfig::class);
+
+        // Replace all job stored arguments what must be overridden by globals.
+        // If globals is not set for some of those arguments it will be overwritten by null.
+        foreach ($toFetchFromGlobals as $key => $enabled) {
+            if (!$enabled) {
+                continue;
+            }
+            // try lo fetch attribute from plotter defaults first
+            if ($config->has("plotting.plotters.$plotterAlias.$key")) {
+                $arguments[$key] = $config->get("plotting.plotters.$plotterAlias.arguments.$key");
+                continue;
+            }
+            // and from global defaults second
+            $globalKey = $associations[$key] ?? null;
+            $arguments[$key] = $globalKey !== null
+                ? $config->get($globalKey)
+                : null;
+        }
+
+        return $arguments;
     }
 
     /**
@@ -221,11 +346,15 @@ class Job extends Model
      */
     protected function isLogForNewWorkerSaved(): bool
     {
-        if (!$this->getAttribute('save_worker_monitor_log')) return false;
+        if (!$this->getAttribute('save_worker_log')) {
+            return false;
+        }
 
         $number = $this->getAttribute('number_of_worker_logs');
 
-        if ($number === 0) return true;
+        if ($number === 0) {
+            return true;
+        }
 
         if ($number >= 1) {
             $number--;
@@ -237,5 +366,69 @@ class Job extends Model
         }
 
         return false;
+    }
+
+    /**
+     * Get pre-process command for this job.
+     *
+     * @return  string|null
+     */
+    public function preProcessCommand(): ?string
+    {
+        return $this->getCommand('pre_command_enabled', 'pre_command');
+    }
+
+    /**
+     * Get post-process command for this job.
+     *
+     * @return  string|null
+     */
+    public function postProcessCommand(): ?string
+    {
+        return $this->getCommand('post_command_enabled', 'post_command');
+
+    }
+
+    /**
+     * Make command if it is not empty and enabled, null otherwise.
+     *
+     * @param string $enabledAttr
+     * @param string $commandAttr
+     *
+     * @return  string|null
+     *
+     * @internal
+     */
+    protected function getCommand(string $enabledAttr, string $commandAttr): ?string
+    {
+        if (!$this->getAttribute($enabledAttr)) {
+            return null;
+        }
+
+        return $this->getAttribute($commandAttr);
+    }
+
+    /**
+     * Increase plots done counter and check last worker finished job to fire job done event.
+     */
+    public function iterationDone(): void
+    {
+        $done = $this->getAttribute('plots_done') + 1;
+        $this->setAttribute('plots_done', $done);
+        $this->save();
+
+        // check if job ended
+
+        // if number of plots to be done is infinite there is no job end.
+        if (($toDo = $this->getAttribute('plots_to_do')) <= 0) {
+            return;
+        }
+
+        // if number of plots is reached target and there is only one worker at this time
+        // that actually activated this method by emitting WorkerDoneEvent and will be shutdown soon
+        // means worker has done last job iteration
+        if ($toDo === $done && $this->nowWorkingCount() !== 1) {
+            JobDoneEvent::dispatch($this->getAttribute('id'));
+        }
     }
 }

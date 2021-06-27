@@ -10,41 +10,53 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
+use App\Traits\SystemCommandsTrait;
+use App\Classes\Plotters\Mapper;
+use App\Classes\Plotters\PlotterInterface;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Log;
-use App\Traits\ChiaCommandsTrait;
-use App\Traits\SystemCommandsTrait;
-use App\Classes\MCFConfig;
-use App\Classes\LogParser;
-use App\Exceptions\ChiaCommandException;
 use App\Exceptions\WorkerException;
+use App\Exceptions\PlotterException;
+use App\Exceptions\SystemCommandException;
+use Illuminate\Contracts\Container\BindingResolutionException;
+
+use App\Events\Helpers\WorkerBaseEvent;
+use App\Events\Worker\PlottingFinishedEvent;
+use App\Events\Worker\PlottingStartedEvent;
+use App\Events\Worker\PostProcessFinishedEvent;
+use App\Events\Worker\PostProcessStartedEvent;
+use App\Events\Worker\PreProcessFinishedEvent;
+use App\Events\Worker\PreProcessStartedEvent;
+use App\Events\Worker\WorkerDoneEvent;
 use App\Events\WorkerStateEvent;
-use App\Events\WorkerFinishedEvent;
 
 class Worker extends Model
 {
-    use ChiaCommandsTrait,
-        SystemCommandsTrait;
+    use SystemCommandsTrait;
 
     protected $table = 'mp_workers';
 
     protected $casts = [
         'pid' => 'int',
+        'executable' => 'string',
         'phase' => 'int',
         'step' => 'int',
         'percents' => 'int',
-        'plot_size' => 'int',
-        'buckets' => 'int',
-        'buffer' => 'int',
-        'threads' => 'int',
-        'disable_bitfield' => 'bool',
-        'skip_add' => 'bool',
+        'attributes' => 'array',
         'cpu_affinity_enable' => 'bool',
         'cpus' => 'array',
         'save_log' => 'bool',
+        'running_pre_command' => 'bool',
+        'running_post_command' => 'bool',
+        'has_error' => 'bool',
+        'error' => 'string',
+        'status' => 'string',
+        'created_at' => 'datetime:Y-m-d H:i:s'
     ];
+
+    /** @var PlotterInterface Plotter cache */
+    protected PlotterInterface $plotter;
 
     /**
      * Related job.
@@ -57,60 +69,67 @@ class Worker extends Model
     }
 
     /**
-     * Worker creating factory.
+     * Get associated job.
+     *
+     * @return  Job
+     */
+    protected function getJob(): Job
+    {
+        return $this->loadMissing('job')->getRelation('job');
+    }
+
+    /**
+     * Make plotter for this worker.
+     *
+     * @return  PlotterInterface
+     *
+     * @throws  PlotterException
+     */
+    protected function plotter(): PlotterInterface
+    {
+        if (!$this->exists) {
+            throw new WorkerException(sprintf('[%s] Can not create plotter for non existing worker', static::class));
+        }
+
+        if (!isset($this->plotter)) {
+            $this->plotter = Mapper::make(
+                $this->getAttribute('plotter_alias'),
+                $this->getAttribute('id'),
+                $this->getAttribute('executable'),
+                $this->getAttribute('attributes'),
+                $this->getAttribute('cpu_affinity_enable'),
+                $this->getAttribute('cpus'),
+                $this->logFileName()
+            );
+        }
+
+        return $this->plotter;
+    }
+
+    /**
+     * Worker factory.
      *
      * @param int $jobId
-     * @param bool $globalKeys
-     * @param string|null $farmerPublicKey
-     * @param string|null $poolPublicKey
-     * @param bool $globalPlotSize
-     * @param int|null $plotSize
-     * @param bool $globalBuckets
-     * @param int|null $buckets
-     * @param bool $globalBuffer
-     * @param int|null $buffer
-     * @param bool $globalThreads
-     * @param int|null $threads
-     * @param bool $globalTmpDir
-     * @param string|null $tmpDir
-     * @param bool $globalTmp2Dir
-     * @param string|null $tmp2Dir
-     * @param bool $globalFinalDir
-     * @param string|null $finalDir
-     * @param bool $globalDisableBitfield
-     * @param bool $disableBitfield
-     * @param bool $globalSkipAdd
-     * @param bool $skipAdd
+     * @param string $plotterAlias
+     * @param string $executable
+     * @param array $attributes
      * @param bool $cpuAffinityEnable
      * @param array|null $cpus
      * @param bool $saveLog
      *
      * @return  Worker
-     *
-     * @throws  BindingResolutionException
      */
-    public static function factory(int $jobId, bool $globalKeys, ?string $farmerPublicKey, ?string $poolPublicKey, bool $globalPlotSize, ?int $plotSize, bool $globalBuckets, ?int $buckets, bool $globalBuffer, ?int $buffer, bool $globalThreads, ?int $threads, bool $globalTmpDir, ?string $tmpDir, bool $globalTmp2Dir, ?string $tmp2Dir, bool $globalFinalDir, ?string $finalDir, bool $globalDisableBitfield, bool $disableBitfield, bool $globalSkipAdd, bool $skipAdd, bool $cpuAffinityEnable, ?array $cpus, bool $saveLog): Worker
+    public static function factory(int $jobId, string $plotterAlias, string $executable, array $attributes, bool $cpuAffinityEnable, ?array $cpus, bool $saveLog): Worker
     {
-        /** @var MCFConfig $config */
-        $config = app()->make(MCFConfig::class);
-
         $worker = new Worker;
 
         $worker->setAttribute('job_id', $jobId);
+        $worker->setAttribute('plotter_alias', $plotterAlias);
+        $worker->setAttribute('executable', $executable);
         $worker->setAttribute('phase', 0);
         $worker->setAttribute('step', 0);
         $worker->setAttribute('percents', 0);
-        $worker->setAttribute('farmer_public_key', $globalKeys ? $config->get('general.default_farmer_key', '') : $farmerPublicKey);
-        $worker->setAttribute('pool_public_key', $globalKeys ? $config->get('general.default_pool_key', '') : $poolPublicKey);
-        $worker->setAttribute('plot_size', $globalPlotSize ? $config->get('job.default_plot_size', 32) : $plotSize);
-        $worker->setAttribute('buckets', $globalBuckets ? $config->get('job.default_buckets', 128) : $buckets);
-        $worker->setAttribute('buffer', $globalBuffer ? $config->get('job.default_buffer', 3389) : $buffer);
-        $worker->setAttribute('threads', $globalThreads ? $config->get('job.default_threads', 2) : $threads);
-        $worker->setAttribute('tmp_dir', $globalTmpDir ? $config->get('job.default_tmp_dir', null) : $tmpDir);
-        $worker->setAttribute('tmp2_dir', $globalTmp2Dir ? $config->get('job.default_tmp2_dir', null) : $tmp2Dir);
-        $worker->setAttribute('final_dir', $globalFinalDir ? $config->get('job.default_final_dir', null) : $finalDir);
-        $worker->setAttribute('disable_bitfield', $globalDisableBitfield ? $config->get('job.default_disable_bitfield', false) : $disableBitfield);
-        $worker->setAttribute('skip_add', $globalSkipAdd ? $config->get('job.default_skip_add', false) : $skipAdd);
+        $worker->setAttribute('attributes', $attributes);
         $worker->setAttribute('cpu_affinity_enable', $cpuAffinityEnable);
         $worker->setAttribute('cpus', $cpus);
         $worker->setAttribute('save_log', $saveLog);
@@ -119,183 +138,134 @@ class Worker extends Model
     }
 
     /**
+     * Worker status.
+     *
+     * @return  string|null
+     */
+    public function status(): ?string
+    {
+        return $this->getAttribute('status');
+    }
+
+    /**
      * Start this worker.
      *
      * @return  bool
      *
+     * @throws  WorkerException
      * @throws  BindingResolutionException
+     * @throws  PlotterException
      */
     public function start(): bool
     {
         try {
-            $this->createTemporaryDir();
-
-            $this->createSecondaryTemporaryDir();
-
             $this->checkStartConditions();
 
-            $pid = $this->runPlotCommand();
+            // handle pre command
+            if (($preProcessCommand = $this->getJob()->preProcessCommand()) !== null) {
 
-            $this->setAttribute('pid', $pid);
+                // if pre-process command enabled test plotter first
+                $this->plotter()->test();
 
-            $this->save();
+                // set states and run command in background
+                $this->setCommandState(true);
+                $pid = $this->systemCommands()->runInBackground($preProcessCommand, $this->logFileName('pre'));
+                $this->setAttribute('pid', $pid);
+                $this->setAttribute('status', 'Running pre-process command');
 
-            Log::debug(sprintf('Worker [%s] started. PID: %s', $this->getAttribute('id'), $pid));
+                $this->save();
 
-        } catch (ChiaCommandException | WorkerException $exception) {
+                Log::debug(sprintf('Worker [%s] started pre-process command. PID: %s', $this->getAttribute('id'), $pid));
+
+                $this->fire(PreProcessStartedEvent::class);
+
+                return true;
+            }
+
+            $this->startPlotting();
+
+        } catch (PlotterException | WorkerException | SystemCommandException | BindingResolutionException $exception) {
 
             $this->shutdown(true, sprintf('[%s] %s', get_class($exception), $exception->getMessage()));
 
-            return false;
+            throw new WorkerException(sprintf('Can not start worker for job [%s]: %s', $this->getAttribute('job_id'), $exception->getMessage()));
         }
 
         return true;
     }
 
     /**
-     * Get temporary directory path.
+     * Set states for pre- and post-process command running.
      *
-     * @return  string|null
-     */
-    public function tempDir(): ?string
-    {
-        if (($id = $this->getAttribute('id')) === null) return null;
-
-        return $this->getAttribute('tmp_dir') . DIRECTORY_SEPARATOR . $id;
-    }
-
-    /**
-     * Create primary temporary directory.
+     * @param bool $pre
+     * @param bool $post
      *
      * @return  void
-     *
-     * @throws  WorkerException
-     *
-     * @internal
      */
-    protected function createTemporaryDir(): void
+    protected function setCommandState(bool $pre = false, bool $post = false): void
     {
-        if (($dir = $this->tempDir()) === null) {
-            throw new WorkerException('Temporary directory must be set.');
-        }
-
-        if (!mkdir($dir, 0777, true) || !is_dir($dir)) {
-            throw new WorkerException('Temporary directory can not be created. Check path and permissions to creating it.');
-        }
+        $this->setAttribute('running_pre_command', $pre);
+        $this->setAttribute('running_post_command', $post);
     }
 
     /**
-     * Get second temporary directory path.
+     * Start plotting process.
      *
-     * @return  string|null
-     */
-    public function temp2Dir(): ?string
-    {
-        if (($id = $this->getAttribute('id')) === null) return null;
-
-        $dir = $this->getAttribute('tmp2_dir');
-
-        return $dir === null ? null : $dir . DIRECTORY_SEPARATOR . $id;
-    }
-
-    /**
-     * Create secondary temporary directory.
-     *
-     * @return  void
-     *
-     * @throws  WorkerException
-     *
-     * @internal
-     */
-    protected function createSecondaryTemporaryDir(): void
-    {
-        if (($dir = $this->temp2Dir()) === null) return;
-
-        if (!mkdir($dir, 0777, true) || !is_dir($dir)) {
-            throw new WorkerException('Secondary temporary directory can not be created. Check path and permissions to creating it.');
-        }
-    }
-
-    /**
-     * Run plotting command.
-     *
-     * @return  int
-     *
-     * @throws  ChiaCommandException
+     * @throws  PlotterException
+     * @throws  SystemCommandException
      * @throws  BindingResolutionException
      *
      * @internal
      */
-    protected function runPlotCommand(): int
+    protected function startPlotting(): void
     {
-        return $this->chiaCommands()->makePlot(
-            $this->getAttribute('farmer_public_key'),
-            $this->getAttribute('pool_public_key'),
-            $this->getAttribute('plot_size'),
-            $this->getAttribute('buckets'),
-            $this->getAttribute('buffer'),
-            $this->getAttribute('threads'),
-            $this->tempDir(),
-            $this->temp2Dir(),
-            $this->getAttribute('final_dir'),
-            $this->getAttribute('disable_bitfield'),
-            $this->getAttribute('skip_add'),
-            $this->getAttribute('cpu_affinity_enable'),
-            $this->getAttribute('cpus'),
-            $this->logFileName(),
-        );
-    }
+        $this->setCommandState();
 
-    /**
-     * Cleanup and remove directory.
-     *
-     * @param string|null $dir
-     *
-     * @return  void
-     *
-     * @internal
-     */
-    protected function cleanUpDir(?string $dir): void
-    {
-        if ($dir === null || !is_dir($dir)) return;
+        $pid = $this->plotter()->run();
+        $this->setAttribute('pid', $pid);
+        $this->setAttribute('status', 'Starting plotting process');
 
-        foreach (glob($dir . DIRECTORY_SEPARATOR . "*.*") as $filename) {
-            if (is_file($filename)) {
-                unlink($filename);
-            }
-        }
+        $this->save();
 
-        rmdir($dir);
+        Log::debug(sprintf('Worker [%s] started. PID: %s', $this->getAttribute('id'), $pid));
+
+        $this->fire(PlottingStartedEvent::class);
     }
 
     /**
      * Get logging absolute filename.
      *
+     * @param string|null $postfix
+     *
      * @return  string|null
      */
-    public function logFileName(): ?string
+    public function logFileName(?string $postfix = null): ?string
     {
-        if (($id = $this->getAttribute('id')) === null) return null;
+        if (($id = $this->getAttribute('id')) === null) {
+            return null;
+        }
 
-        return app()->basePath() . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . $id . '.txt';
+        return app()->basePath() . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . $id . ($postfix ? "_$postfix" : null) . '.txt';
     }
 
     /**
      * Remove log file.
      *
+     * @param string|null $postfix
+     *
      * @return  void
      *
      * @internal
      */
-    protected function cleanUpLog(): void
+    protected function cleanUpLog(?string $postfix = null): void
     {
-        if (!$this->getAttribute('save_log') && is_file($this->logFileName())) {
-            unlink($this->logFileName());
+        if (!$this->getAttribute('save_log') && is_file($log = $this->logFileName($postfix))) {
+            unlink($log);
         }
     }
 
     /**
-     * Check start conditions.
+     * Check start conditions for worker.
      *
      * @return  void
      *
@@ -305,33 +275,14 @@ class Worker extends Model
      */
     protected function checkStartConditions(): void
     {
-        if (!$this->exists) throw new WorkerException('Worker must be properly created before start.');
-
-        if ($this->getAttribute('pid') !== null) throw new WorkerException('Worker is running already.');
-
-        $message = 'Worker must have proper';
-        $hasError = false;
-
-        if ($this->getAttribute('farmer_public_key') === null) {
-            $message .= ' farmer public key';
-            $hasError = true;
-        }
-        if ($this->getAttribute('pool_public_key') === null) {
-            $message .= ($hasError ? ',' : '') . ' pool public key';
-            $hasError = true;
-        }
-        if ($this->getAttribute('tmp_dir') === null) {
-            $message .= ($hasError ? ',' : '') . ' temporary directory';
-            $hasError = true;
-        }
-        if ($this->getAttribute('final_dir') === null) {
-            $message .= ($hasError ? ',' : '') . ' destination directory';
-            $hasError = true;
+        if (!$this->exists) {
+            throw new WorkerException('Worker must be properly created before start.');
         }
 
-        if ($hasError) throw new WorkerException($message);
+        if ($this->getAttribute('pid') !== null) {
+            throw new WorkerException('Worker is running already.');
+        }
     }
-
 
     /**
      * Shutdown and cleanup this worker.
@@ -342,21 +293,24 @@ class Worker extends Model
      * @return  void
      *
      * @throws  BindingResolutionException
+     * @throws  PlotterException
      */
     public function shutdown(bool $error, ?string $message = null): void
     {
         Log::debug(sprintf('Shutting down worker [%s]%s',
             $this->getAttribute('id'),
-            $error ? ' with error ' . $message : ''
+            $error ? ' with error' : ''
         ));
-        if ($error) $this->handleError($message);
+
+        if ($error) {
+            $this->handleError($message);
+        }
 
         $this->killProcess();
 
-        $this->cleanUpDir($this->tempDir());
-        $this->cleanUpDir($this->temp2Dir());
-
-        $this->cleanUpLog();
+        $this->plotter()->cleanUp($this->getAttribute('save_log'));
+        $this->cleanUpLog('pre');
+        $this->cleanUpLog('post');
 
         $this->delete();
     }
@@ -370,7 +324,9 @@ class Worker extends Model
      */
     public function isWorking(): bool
     {
-        if (($pid = $this->getAttribute('pid')) === null) return false;
+        if (($pid = $this->getAttribute('pid')) === null) {
+            return false;
+        }
 
         return $this->systemCommands()->isProcessRunning($pid);
     }
@@ -386,7 +342,9 @@ class Worker extends Model
      */
     protected function killProcess(): void
     {
-        if (($pid = $this->getAttribute('pid')) === null) return;
+        if (($pid = $this->getAttribute('pid')) === null) {
+            return;
+        }
 
         if ($this->systemCommands()->isProcessRunning($pid)) {
             $this->systemCommands()->killProcess($pid);
@@ -406,31 +364,91 @@ class Worker extends Model
     }
 
     /**
+     * Fire event.
+     *
+     * @param string $event
+     *
+     * @return  void
+     *
+     * @internal
+     */
+    protected function fire(string $event): void
+    {
+        /** @var WorkerBaseEvent $event */
+        $event::dispatch($this->getAttribute('job_id'));
+    }
+
+    /**
      * Update worker state.
      *
+     * @throws  PlotterException
+     * @throws  SystemCommandException
      * @throws  BindingResolutionException
      */
     public function updateState(): void
     {
-        if ($this->getAttribute('id') === null) return;
-
-        if ($this->isWorking()) {
-            // If process is still running parse state from log
-            $this->parseState();
-
+        if ($this->getAttribute('id') === null) {
             return;
         }
 
-        // Process has finished but worker still exists
-        // todo: run custom command after phase 5 is done (another pid, phase 6)
+        $stopped = !$this->isWorking();
+        $pre = $this->getAttribute('running_pre_command');
+        $post = $this->getAttribute('running_post_command');
 
-        // finalize
-        $this->finalize();
-        Log::debug(sprintf('Worker [%s] finalized.', $this->getAttribute('id')));
+        // Check if plotting is running parse state from log
+        if (!$stopped && !$pre && !$post) {
+            $this->parseState();
+            return;
+        }
 
-        // and run normal shutdown
-        $this->shutdown(false);
+        // Process finished
+        if ($stopped) {
 
+            // If pre-process command finished start plotting
+            if ($pre) {
+                $this->fire(PreProcessFinishedEvent::class);
+                $this->startPlotting();
+                return;
+            }
+
+            // If post-process command finished finalize and shutdown worker
+            if ($post) {
+                $this->fire(PostProcessFinishedEvent::class);
+                $this->finalize();
+                $this->shutdown(false);
+                return;
+            }
+
+            // Otherwise plotting finished
+            $this->fire(PlottingFinishedEvent::class);
+
+            // fire state changed event to handle last phase ended and 100% is reached
+            WorkerStateEvent::dispatch(
+                $this->getAttribute('job_id'),
+                $phase = $this->getAttribute('phase'), $phase + 1,
+                $this->getAttribute('step'), 0,
+                $this->getAttribute('percents'), 100
+            );
+
+            // Check if job needs post-process command to be executed
+            if (($postProcessCommand = $this->getJob()->postProcessCommand()) !== null) {
+                // set states and run command in background
+                $this->setCommandState(false, true);
+                $postProcessCommand = str_replace(['%plot%'], [$this->getAttribute('plot_file_name')], $postProcessCommand);
+                $pid = $this->systemCommands()->runInBackground($postProcessCommand, $this->logFileName('post'));
+                $this->setAttribute('pid', $pid);
+                $this->setAttribute('status', 'Running post-process command');
+                $this->save();
+
+                Log::debug(sprintf('Worker [%s] started post-process command. PID: %s', $this->getAttribute('id'), $pid));
+                $this->fire(PostProcessStartedEvent::class);
+                return;
+            }
+
+            // Finalize and shutdown worker if no post-process command
+            $this->finalize();
+            $this->shutdown(false);
+        }
     }
 
     /**
@@ -442,62 +460,66 @@ class Worker extends Model
      */
     protected function finalize(): void
     {
-        // fire phase 6 and 100% event to make phase 5 ended and 100% is reached
-        WorkerStateEvent::dispatch(
-            $this->getAttribute('job_id'),
-            $this->getAttribute('phase'), 6,
-            $this->getAttribute('step'), 0,
-            $this->getAttribute('percents'), 100
-        );
+        $this->fire(WorkerDoneEvent::class);
 
-        // fire finished event
-        WorkerFinishedEvent::dispatch($this);
+        Log::debug(sprintf('Worker [%s] finalized.', $this->getAttribute('id')));
     }
 
     /**
      * Update progress of worker and fire event if state has changed.
      *
-     * @throws  BindingResolutionException
+     * @throws  PlotterException
      *
      * @internal
      */
     protected function parseState(): void
     {
-        /** @var LogParser $parser */
-        $parser = app()->make(LogParser::class, [
-            'filename' => $this->logFileName(),
-            'buckets' => $this->getAttribute('buckets'),
-        ]);
+        $state = $this->plotter()->parser()->getProgress();
 
-        $progress = $parser->getProgress();
+        $this->setAttribute('status', $state->state());
 
-        $newPhase = $progress['phase'] ?? 0;
-        $newStep = $progress['step'] ?? 0;
-        $newProgress = $progress['%'] ?? 0;
+        // Update plot file name only if it was not set and exists in state.
+        if ($state->plotFileName() !== null && $this->getAttribute('plot_file_name') === null) {
+            $destination = trim($this->plotter()->getDestination(), ' \t\n\r\0\x0B\\/');
+            $filename = trim($state->plotFileName(), ' \t\n\r\0\x0B\\/');
+            $this->setAttribute('plot_file_name', $destination . DIRECTORY_SEPARATOR . $filename);
+        }
 
-        $oldPhase = $this->getAttribute('phase') ?? 0;
-        $oldStep = $this->getAttribute('step') ?? 0;
-        $oldProgress = $this->getAttribute('percents') ?? 0;
+        if ($state->hasError()) {
+            $this->setAttribute('has_error', $state->plotFileName());
+            $this->setAttribute('error', $state->plotFileName());
+        } else {
+            $this->setAttribute('has_error', false);
+            $this->setAttribute('error', null);
+        }
 
-        if ($oldPhase !== $newPhase || $oldStep !== $newStep || $oldProgress !== $newProgress) {
+        // Save will write attributes to DB only if there is changes.
+        $this->save();
+
+        $phase = $this->getAttribute('phase') ?? 0;
+        $step = $this->getAttribute('step') ?? 0;
+        $progress = $this->getAttribute('percents') ?? 0;
+
+        if ($phase !== $state->phase() || $step !== $state->step() || $progress !== $state->progress()) {
             // update worker state
-            $this->setAttribute('phase', $newPhase);
-            $this->setAttribute('step', $newStep);
-            $this->setAttribute('percents', $newProgress);
+            $this->setAttribute('phase', $state->phase());
+            $this->setAttribute('step', $state->step());
+            $this->setAttribute('percents', $state->progress());
             $this->save();
 
-            Log::debug(sprintf('Worker [%s] state changed to from [%s,%s,%s] to [%s,%s,%s]',
+            Log::debug(sprintf('Worker [%s] state changed. Phase %s->%s, step %s->%s, progress %s->%s]',
                 $this->getAttribute('id'),
-                $oldPhase, $oldStep, $oldProgress,
-                $newPhase, $newStep, $newProgress
+                $phase, $state->phase(),
+                $step, $state->step(),
+                $progress, $state->progress()
             ));
 
             // fire worker state changed event if changed
             WorkerStateEvent::dispatch(
                 $this->getAttribute('job_id'),
-                $oldPhase, $newPhase,
-                $oldStep, $newStep,
-                $oldProgress, $newProgress
+                $phase, $state->phase(),
+                $step, $state->step(),
+                $progress, $state->progress()
             );
         }
     }

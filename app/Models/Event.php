@@ -14,6 +14,7 @@ use App\Events\WorkerStateEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class Event extends Model
 {
@@ -23,14 +24,68 @@ class Event extends Model
 
     protected $casts = [
         'name' => 'string',
-        'on_phase' => 'bool',
-        'on_percent' => 'bool',
+        'stage' => 'string',
+        'p_stage' => 'string',
+        'p_stage_cond' => 'string',
+        'p_progress' => 'int',
         'with_delay' => 'bool',
-        'phase_number' => 'string',
-        'phase_condition' => 'string',
-        'percent_count' => 'int',
-        'delay_seconds' => 'int',
+        'delay' => 'int',
     ];
+
+    /**
+     * Get event name.
+     *
+     * @return  string
+     */
+    public function name(): string
+    {
+        return $this->getAttribute('name');
+    }
+
+
+    /**
+     * Write record for job event needs to be fired with proper fire time.
+     *
+     * @return  void
+     */
+    public function writeEventRecord(): void
+    {
+        $now = Carbon::now();
+
+        DB::table('mp_job_events')->insert([
+            'job_event_name' => $this->getAttribute('name'),
+            'fire_at' => $this->fireTime($now),
+            'created_at' => $now,
+        ]);
+    }
+
+    /**
+     * Make fire time.
+     *
+     * @param Carbon $now
+     *
+     * @return  Carbon
+     *
+     * @internal
+     */
+    protected function fireTime(Carbon $now): Carbon
+    {
+        return $this->getAttribute('with_delay')
+            ? $now->clone()->addSeconds($this->getAttribute('delay'))
+            : $now;
+    }
+
+    /**
+     * Check if stage matches.
+     *
+     * @param string $stage
+     *
+     * @return  bool
+     */
+    public function isStage(string $stage): bool
+    {
+        return $this->getAttribute('stage') === $stage;
+    }
 
     /**
      * Check if this event should be fired on current state changes.
@@ -46,20 +101,20 @@ class Event extends Model
             $number = explode('_', $this->getAttribute('phase_number'));
             $onPhase = (int)$number[0];
             $onStep = isset($number[1]) ? (int)$number[1] : 0;
-            $condition = $this->getAttribute('phase_condition');
+            $condition = $this->getAttribute('p_stage_cond');
 
             if ($onStep === 0) { // only on phase change
                 if ($this->isPhaseChanged($changed) && (
-                        $condition === 'starts' && $this->isPhaseStarted($changed, $onPhase)
-                        || $condition === 'ends' && $this->isPhaseEnded($changed, $onPhase)
+                        ($condition === 'start' && $this->isPhaseStarted($changed, $onPhase))
+                        || ($condition === 'end' && $this->isPhaseEnded($changed, $onPhase))
                     )
                 ) {
                     return true;
                 }
             } else { // on step change
                 if ($this->isPhaseOrStepChanged($changed) && (
-                        $condition === 'starts' && $this->isPhaseAndStepStarted($changed, $onPhase, $onStep)
-                        || $condition === 'ends' && $this->isPhaseAndStepEnded($changed, $onPhase, $onStep)
+                        ($condition === 'start' && $this->isPhaseAndStepStarted($changed, $onPhase, $onStep))
+                        || ($condition === 'end' && $this->isPhaseAndStepEnded($changed, $onPhase, $onStep))
                     )
                 ) {
                     return true;
@@ -68,7 +123,7 @@ class Event extends Model
 
         } else if ($this->getAttribute('on_percent')) { // on progress condition
 
-            $onPercents = $this->getAttribute('percent_count');
+            $onPercents = $this->getAttribute('p_progress');
 
             if ($changed->oldProgress < $onPercents && $onPercents <= $changed->newProgress) {
                 return true;
@@ -77,38 +132,6 @@ class Event extends Model
         } // else wrong case
 
         return false;
-    }
-
-    /**
-     * Make record for job event needs to be fired with proper fire time.
-     *
-     * @return  array
-     */
-    public function makeEventRecord(): array
-    {
-        $now = Carbon::now();
-
-        return [
-            'job_event_name' => $this->getAttribute('name'),
-            'fire_at' => $this->fireTime($now),
-            'created_at' => $now,
-        ];
-    }
-
-    /**
-     * Make fire time.
-     *
-     * @param Carbon $now
-     *
-     * @return  Carbon
-     *
-     * @internal
-     */
-    protected function fireTime(Carbon $now): Carbon
-    {
-        return $this->getAttribute('with_delay')
-            ? $now->clone()->addSeconds($this->getAttribute('delay_seconds'))
-            : $now;
     }
 
     /**

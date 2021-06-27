@@ -41,6 +41,18 @@ class MCFConfig
     }
 
     /**
+     * Get MCF config value persistence in config.
+     *
+     * @param string $key
+     *
+     * @return  bool
+     */
+    public function has(string $key): bool
+    {
+        return Arr::has($this->config, $key);
+    }
+
+    /**
      * Get MCF config value or whole config set.
      *
      * @param string|null $key

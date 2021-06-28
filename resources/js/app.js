@@ -4,6 +4,7 @@ require('./bootstrap');
 import { createApp, h } from 'vue';
 import { App as InertiaApp, plugin as InertiaPlugin } from '@inertiajs/inertia-vue3';
 import { InertiaProgress } from '@inertiajs/progress';
+import Toast from "@/Plugins/Toast/toaster";
 
 const el = document.getElementById('app');
 
@@ -16,6 +17,7 @@ createApp({
 })
     .mixin({ methods: { route } })
     .use(InertiaPlugin)
+    .use(Toast)
     .mount(el);
 
 InertiaProgress.init({ color: '#34d399' });

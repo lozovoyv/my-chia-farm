@@ -19,9 +19,9 @@ class RedirectIfAuthenticated
      */
     public function handle(Request $request, Closure $next, ...$guards): mixed
     {
-        $guards = empty($guards) ? [null] : $guards;
+        $g = empty($guards) ? [null] : $guards;
 
-        foreach ($guards as $guard) {
+        foreach ($g as $guard) {
             if (Auth::guard($guard)->check()) {
                 return redirect(RouteServiceProvider::HOME);
             }

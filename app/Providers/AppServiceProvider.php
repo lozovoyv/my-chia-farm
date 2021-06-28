@@ -10,9 +10,7 @@
 
 namespace App\Providers;
 
-use App\Classes\Commands\ChiaCommands;
 use App\Classes\Commands\SystemCommands;
-use App\Classes\Commands\ChiaCommandsLinux;
 use App\Classes\Commands\SystemCommandsLinux;
 use App\Classes\MCFConfig;
 use Illuminate\Support\ServiceProvider;
@@ -33,7 +31,6 @@ class AppServiceProvider extends ServiceProvider
 
         // Bind commands
         // TODO: add another OSs
-        $this->app->bind(ChiaCommands::class, ChiaCommandsLinux::class);
         $this->app->bind(SystemCommands::class, SystemCommandsLinux::class);
     }
 }

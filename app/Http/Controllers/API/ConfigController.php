@@ -11,7 +11,6 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Traits\ChiaCommandsTrait;
 use App\Traits\ReturnsJsonResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
@@ -20,8 +19,7 @@ use App\Classes\MCFConfig;
 
 class ConfigController extends Controller
 {
-    use ChiaCommandsTrait,
-        ReturnsJsonResponse;
+    use ReturnsJsonResponse;
 
     /** @var MCFConfig MaxPlot config */
     protected MCFConfig $config;

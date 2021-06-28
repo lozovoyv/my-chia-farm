@@ -12,7 +12,8 @@
         <div class="w-full box-border px-6 py-2 bg-white">
             <div class="relative w-full pl-10">
                 <h2 class="mt-0.5">{{ title }}</h2>
-                <div class="text-sm text-gray-900">done {{ done }} of {{ total }}<span v-if="pending !==0">, pending {{ pending }}</span></div>
+                <div class="text-sm text-gray-900">done {{ done }} of {{ total }}<span
+                    v-if="pending !==0">, pending {{ pending }}</span></div>
                 <span class="w-8 h-8 absolute left-0 top-1 block cursor-pointer text-green-400 hover:text-green-600"
                       title="Start new worker">
                     <icon-play class="w-full h-full" @click="start"/>
@@ -70,12 +71,12 @@ export default {
                 axios.post('/api/worker/add', {job_id: this.id})
                     .then((response) => {
                         const message = response.data['message'];
-                        console.log(message);
+                        this.$toast.success(message, 5000);
                         this.$emit('changed');
                     })
                     .catch((error) => {
                         const message = error.response.data['message'];
-                        console.log(message);
+                        this.$toast.error(message);
                     });
             }
         },

@@ -94,12 +94,12 @@ export default {
                 axios.post('/api/worker/dismiss', {id: this.id})
                     .then((response) => {
                         const message = response.data['message'];
-                        console.log(message);
+                        this.$toast.success(message, 5000);
                         this.$emit('dismissed');
                     })
                     .catch((error) => {
                         const message = error.response.data['message'];
-                        console.log(message);
+                        this.$toast.error(message);
                     })
                     .finally(() => {
                         this.is_killing = false;

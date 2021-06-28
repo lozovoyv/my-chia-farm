@@ -51,7 +51,7 @@ export default {
                 })
                 .catch((error) => {
                     const message = error.response.data['message'];
-                    console.log(message);
+                    this.$toast.error(message);
                 })
                 .finally(() => {
                     this.updating = false;

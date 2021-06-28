@@ -323,7 +323,7 @@ export default {
 
                     const received = response.data.data;
                     const message = response.data.message;
-                    console.log(message);
+                    this.$toast.success(message, 5000);
 
                     if (this.creating) {
                         // send created event
@@ -340,7 +340,8 @@ export default {
                     }
                 })
                 .catch((error) => {
-                    console.log(error);
+                    const message = error.response.data['message'];
+                    this.$toast.error(message);
                 })
                 .finally(() => {
                     this.processing = false;
@@ -369,11 +370,12 @@ export default {
             axios.post('/api/job/remove', {id: this.id})
                 .then((response) => {
                     const message = response.data.message;
-                    console.log(message);
+                    this.$toast.success(message, 5000);
                     this.$emit('removed');
                 })
                 .catch((error) => {
-                    console.log(error);
+                    const message = error.response.data['message'];
+                    this.$toast.error(message);
                 })
                 .finally(() => {
                     this.processing = false;

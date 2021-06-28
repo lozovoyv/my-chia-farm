@@ -174,11 +174,11 @@ export default {
                     this.cloneTo('values.' + key_chain, response.data.data);
                     this.cloneTo('old.' + key_chain, response.data.data);
                     let message = response.data.message;
-                    console.log(message);
+                    this.$toast.success(message, 5000);
                 })
                 .catch((error) => {
                     let message = error.response.data.message;
-                    console.log(message);
+                    this.$toast.error(message);
                 })
                 .finally(() => {
                     this.processing[key_chain] = false;

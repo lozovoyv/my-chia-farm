@@ -59,13 +59,13 @@ const Toast = function (options) {
         if (this.options.type) {
             switch (this.options.type) {
                 case 'success':
-                    this.element.classList.add('border', 'border-green-600');
+                    this.element.classList.add('border', 'border-green-400');
                     break;
                 case 'info':
-                    this.element.classList.add('border', 'border-yellow-600');
+                    this.element.classList.add('border', 'border-yellow-400');
                     break;
                 case 'error':
-                    this.element.classList.add('border', 'border-red-600');
+                    this.element.classList.add('border', 'border-red-400');
                     break;
             }
         }

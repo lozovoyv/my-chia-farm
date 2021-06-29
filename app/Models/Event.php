@@ -78,6 +78,17 @@ class Event extends Model
     /**
      * Check if stage matches.
      *
+     * PST: 'plotting stage',
+     * PPR: 'plotting progress',
+     * WBS: 'pre-process command started',
+     * WBE: 'pre-process command finished',
+     * WPS: 'plotter process started',
+     * WPE: 'plotter process finished',
+     * WAS: 'post-process command started',
+     * WAE: 'post-process command finished',
+     * WE: 'worker end',
+     * JE: 'job end',
+     *
      * @param string $stage
      *
      * @return  bool
@@ -96,9 +107,9 @@ class Event extends Model
      */
     public function isTimeToFire(WorkerStateEvent $changed): bool
     {
-        if ($this->getAttribute('on_phase')) { // on phase condition
+        if ($this->isStage('PST')) { // on phase condition
 
-            $number = explode('_', $this->getAttribute('phase_number'));
+            $number = explode('_', $this->getAttribute('p_stage'));
             $onPhase = (int)$number[0];
             $onStep = isset($number[1]) ? (int)$number[1] : 0;
             $condition = $this->getAttribute('p_stage_cond');
@@ -106,7 +117,7 @@ class Event extends Model
             if ($onStep === 0) { // only on phase change
                 if ($this->isPhaseChanged($changed) && (
                         ($condition === 'start' && $this->isPhaseStarted($changed, $onPhase))
-                        || ($condition === 'end' && $this->isPhaseEnded($changed, $onPhase))
+                        || ($condition === 'finish' && $this->isPhaseEnded($changed, $onPhase))
                     )
                 ) {
                     return true;
@@ -114,14 +125,14 @@ class Event extends Model
             } else { // on step change
                 if ($this->isPhaseOrStepChanged($changed) && (
                         ($condition === 'start' && $this->isPhaseAndStepStarted($changed, $onPhase, $onStep))
-                        || ($condition === 'end' && $this->isPhaseAndStepEnded($changed, $onPhase, $onStep))
+                        || ($condition === 'finish' && $this->isPhaseAndStepEnded($changed, $onPhase, $onStep))
                     )
                 ) {
                     return true;
                 }
             }
 
-        } else if ($this->getAttribute('on_percent')) { // on progress condition
+        } else if ($this->isStage('PPR')) { // on progress condition
 
             $onPercents = $this->getAttribute('p_progress');
 

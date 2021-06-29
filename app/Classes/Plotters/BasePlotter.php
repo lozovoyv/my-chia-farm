@@ -237,6 +237,16 @@ abstract class BasePlotter implements PlotterInterface
     abstract protected function makeCommand(): string;
 
     /**
+     * Get plotter current arguments.
+     *
+     * @return  array
+     */
+    protected function arguments(): array
+    {
+        return $this->arguments;
+    }
+
+    /**
      * Get argument with checking in can be null.
      *
      * @param string $key

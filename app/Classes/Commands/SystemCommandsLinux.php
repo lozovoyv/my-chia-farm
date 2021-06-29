@@ -35,7 +35,9 @@ class SystemCommandsLinux implements SystemCommands
      */
     public function isProcessRunning(int $pid): bool
     {
-        $out = shell_exec("ps -p $pid | awk '/$pid/{print $1}'");
+        $command = "ps -p $pid | awk '/$pid/{print $1}'";
+
+        $out = shell_exec($command);
 
         return (int)$out === $pid;
     }
@@ -49,7 +51,9 @@ class SystemCommandsLinux implements SystemCommands
      */
     public function killProcess(int $pid): void
     {
-        shell_exec("kill $pid");
+        $command = "kill $pid";
+
+        shell_exec($command);
     }
 
     /**

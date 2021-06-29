@@ -10,6 +10,7 @@
 
 use App\Http\Controllers\API\ConfigController;
 use App\Http\Controllers\API\JobController;
+use App\Http\Controllers\API\RefreshTokenController;
 use App\Http\Controllers\API\WorkerController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Pages\HomePageController;
@@ -40,6 +41,8 @@ Route::get('/settings', [SettingsPageController::class, 'page'])->middleware(['a
 | Frontend API Routes
 |--------------------------------------------------------------------------
 */
+Route::get('/api/token', [RefreshTokenController::class, 'token'])->middleware(['auth']);
+
 Route::post('/api/config', [ConfigController::class, 'set'])->middleware('auth');
 Route::post('/api/get-keys', [ConfigController::class, 'keys'])->middleware('auth');
 

@@ -9,6 +9,33 @@ window._ = require('lodash');
 window.axios = require('axios');
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+let token = document.head.querySelector('meta[name="csrf-token"]').content;
+window.axios.defaults.headers['X-CSRF-TOKEN'] = token;
+
+window.axios.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response.status === 419 && error.response.config && !error.response.config['__isRetryRequest']) {
+            return new Promise((resolve, reject) => {
+                axios.get('api/token')
+                    .then((resp) => {
+                        const token = resp.data.token;
+                        document.head.querySelector('meta[name="csrf-token"]').content = token;
+                        error.response.config['__isRetryRequest'] = true;
+                        error.response.config.headers['X-CSRF-TOKEN'] = token;
+                        resolve(axios(error.response.config));
+                        console.log('New token retrieved.');
+                    })
+                    .catch((err) => {
+                        console.log('Can not retrieve new token', err);
+                        reject(err);
+                    });
+            });
+        }
+
+        return Promise.reject(error);
+    },
+);
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening

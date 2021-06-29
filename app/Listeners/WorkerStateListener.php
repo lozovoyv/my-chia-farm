@@ -29,7 +29,7 @@ class WorkerStateListener extends WorkerBaseListener
     {
         /** @var WorkerStateEvent $workerEvent */
 
-        Log::debug(sprintf('Checking job [%s] event [%s] to be fired', $workerEvent->jobId, $event->name()));
+        Log::debug(sprintf('Checking job [%s] event [%s] to be fired on state change', $workerEvent->jobId, $event->name()));
 
         if ($event->isTimeToFire($workerEvent)) {
 

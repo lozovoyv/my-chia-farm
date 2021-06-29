@@ -15,7 +15,7 @@ use App\Exceptions\SystemCommandException;
 class SystemCommandsLinux implements SystemCommands
 {
     /**
-     * Get chia keys from installation.
+     * Get cores count.
      *
      * @return  int
      */

@@ -60,7 +60,7 @@ your connection.
 ## First run
 
 After you installed and launched My Chia Farm go to `settings` page and set executables for plotters (typically, for
-original chia it would be `cd ~/chia-blockchain && . ./activate && chia plots create` and `~/chia-plots/build/chia_plot`
+original chia it would be `cd ~/chia-blockchain && . ./activate && chia plots create` and `~/chia-plotter/build/chia_plot`
 for MadMax).
 
 Next go to `jobs` page and configure your desired settings, events and start points.

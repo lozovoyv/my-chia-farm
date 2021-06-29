@@ -34,11 +34,11 @@ ability.
 
 ## Installation
 
-Install `php 8.0` and `ext-pdo`. I believe you can find in Google how to do it.
+Install `php 8.0` and php extensions: `ext-curl`, `ext-mbstring`, `ext-dom`, `ext-sqlite3`. I believe you can find in Google how to do it.
 
 Install composer: [getcomposer.org/download/](https://getcomposer.org/download/)
 
-Install `git`
+Install `git` if it is not installed.
 
 then go to directory you want to install My Chia Farm and run following commands:
 

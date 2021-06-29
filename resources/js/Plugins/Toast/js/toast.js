@@ -55,6 +55,7 @@ const Toast = function (options) {
         this.element = document.createElement("div");
 
         this.element.className = "relative max-w-sm w-full shadow-lg rounded-lg pointer-events-auto relative mb-4 overflow-hidden bg-white p-4 pr-10 text-sm";
+        this.element.style.minHeight = "3.1rem";
 
         if (this.options.type) {
             switch (this.options.type) {

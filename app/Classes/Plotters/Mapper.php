@@ -18,8 +18,8 @@ class Mapper
     protected static array $registered = [
         'original_chia' => Original\Plotter::class,
         'mad_max' => MadMax\Plotter::class,
-        'original_chia_fake' => OriginalFake\Plotter::class,
-        'mad_max_fake' => MadMaxFake\Plotter::class,
+        // 'original_chia_fake' => OriginalFake\Plotter::class,
+        // 'mad_max_fake' => MadMaxFake\Plotter::class,
     ];
 
     /**

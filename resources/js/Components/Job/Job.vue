@@ -285,7 +285,10 @@ export default {
                     }
                 });
             }
-            return events;
+            // and return uniques
+            return events.filter((value, index, self) => {
+                return self.indexOf(value) === index;
+            });
         },
     },
 

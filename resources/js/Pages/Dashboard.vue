@@ -1,9 +1,9 @@
 <template>
     <authenticated-layout>
         <job v-for="(job, key) in jobs"
-                  :key="key"
-                  :original="job"
-                  @changed="update"
+             :key="key"
+             :original="job"
+             @changed="update"
         />
     </authenticated-layout>
 </template>
@@ -35,8 +35,14 @@ export default {
 
     created() {
         this.jobs = clone(this.jobs_original);
+    },
 
+    mounted() {
         this.timer = setInterval(this.update, 5000);
+    },
+
+    unmounted() {
+        clearInterval(this.timer);
     },
 
     methods: {

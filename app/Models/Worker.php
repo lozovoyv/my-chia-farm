@@ -483,9 +483,9 @@ class Worker extends Model
 
         // Update plot file name only if it was not set and exists in state.
         if ($state->plotFileName() !== null && $this->getAttribute('plot_file_name') === null) {
-            $destination = rtrim($this->plotter()->getDestination(), ' \t\n\r\0\x0B\\/');
-            $filename = trim($state->plotFileName(), ' \t\n\r\0\x0B\\/');
-            $this->setAttribute('plot_file_name', $destination . DIRECTORY_SEPARATOR . $filename);
+            $filename = rtrim($this->plotter()->getDestination(), " \t\n\r\0\x0B\\/") . DIRECTORY_SEPARATOR . trim($state->plotFileName(), " \t\n\r\0\x0B\\/");
+            Log::debug(sprintf('Plot filename resolved: %s', $filename));
+            $this->setAttribute('plot_file_name', $filename);
         }
 
         if ($state->hasError()) {

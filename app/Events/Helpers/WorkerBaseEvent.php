@@ -34,10 +34,8 @@ abstract class WorkerBaseEvent implements WorkerEventInterface
      * Get job id.
      *
      * @return  int|null
-     *
-     * @internal
      */
-    protected function jobId():?int
+    public function jobId():?int
     {
         return $this->jobId;
     }

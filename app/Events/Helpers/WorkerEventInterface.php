@@ -16,6 +16,13 @@ use Illuminate\Support\Collection;
 interface WorkerEventInterface
 {
     /**
+     * Get job id.
+     *
+     * @return  int|null
+     */
+    public function jobId(): ?int;
+
+    /**
      * Get job assigned to event.
      *
      * @return  Job

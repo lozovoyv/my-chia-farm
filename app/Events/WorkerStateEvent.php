@@ -42,4 +42,9 @@ class WorkerStateEvent implements WorkerEventInterface
         $this->oldProgress = $oldProgress;
         $this->newProgress = $newProgress;
     }
+
+    public function jobId(): ?int
+    {
+        return $this->jobId;
+    }
 }

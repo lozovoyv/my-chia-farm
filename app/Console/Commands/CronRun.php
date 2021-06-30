@@ -13,6 +13,8 @@ namespace App\Console\Commands;
 use App\Jobs\DispatchEventsJob;
 use App\Jobs\UpdateWorkersJob;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class CronRun extends Command
 {
@@ -35,8 +37,12 @@ class CronRun extends Command
 
             $started = microtime(true);
 
+            try{
             DispatchEventsJob::dispatch();
             UpdateWorkersJob::dispatch();
+            } catch (Exception $e) {
+                Log::error(sprintf('Cron task error: %s', $e->getMessage()));
+            }
 
             if ($i < 5) {
 

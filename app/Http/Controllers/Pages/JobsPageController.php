@@ -82,7 +82,7 @@ class JobsPageController extends Controller
             // fill arguments with defaults
             foreach ($arguments as $key => &$value) {
                 // try to get default for plotter
-                $default = $config->get("plotting.plotters.$alias.$key");
+                $default = $config->get("plotting.plotters.$alias.arguments.$key");
                 // for null case try to get global default value
                 if ($default === null && array_key_exists($key, $associations)) {
                     $default = $config->get($associations[$key]);

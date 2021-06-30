@@ -44,7 +44,7 @@ class SystemCommandsLinux implements SystemCommands
     }
 
     /**
-     * Kill process by PID.
+     * Kill process by PID and all its children.
      *
      * @param int $pid
      *

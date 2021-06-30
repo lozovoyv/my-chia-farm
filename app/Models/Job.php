@@ -332,8 +332,9 @@ class Job extends Model
                 continue;
             }
             // try lo fetch attribute from plotter defaults first
-            if ($config->has("plotting.plotters.$plotterAlias.arguments.$key")) {
-                $arguments[$key] = $config->get("plotting.plotters.$plotterAlias.arguments.$key");
+            $arg = $config->get("plotting.plotters.$plotterAlias.arguments.$key");
+            if (!empty($arg)) {
+                $arguments[$key] = $arg;
                 continue;
             }
             // and from global defaults second

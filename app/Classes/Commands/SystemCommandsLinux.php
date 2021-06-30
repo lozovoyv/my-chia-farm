@@ -11,6 +11,7 @@
 namespace App\Classes\Commands;
 
 use App\Exceptions\SystemCommandException;
+use Illuminate\Support\Facades\Log;
 
 class SystemCommandsLinux implements SystemCommands
 {
@@ -93,7 +94,11 @@ class SystemCommandsLinux implements SystemCommands
         $command = str_replace('"', '\"', $command);
         $command = "nohup sh -c \"$command\" >> $output 2>&1 </dev/null & printf \"%u\" $!";
 
+        Log::debug(sprintf('Running command: %s', $command));
+
         $pid = shell_exec($command);
+
+        Log::debug(sprintf('Command output: %s', $pid));
 
         if ((int)$pid === 0) {
             throw new SystemCommandException("Error running process for [$command]");

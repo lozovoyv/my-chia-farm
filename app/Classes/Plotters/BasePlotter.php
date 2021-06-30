@@ -291,6 +291,10 @@ abstract class BasePlotter implements PlotterInterface
     {
         $dir = $this->getArgument($key, $required, $message);
 
+        if ($dir !== null) {
+            $dir = rtrim($dir, "/\\") . DIRECTORY_SEPARATOR;
+        }
+
         if (($dir !== null || $required) && !is_dir($dir)) {
             throw new PlotterException(sprintf('[%s] Directory %s does not exists.', static::class, $dir));
         }
@@ -317,8 +321,12 @@ abstract class BasePlotter implements PlotterInterface
     {
         $dir = $this->getArgument($key, $required, $message);
 
-        if ($dir !== null && $postfix !== null) {
-            $dir .= DIRECTORY_SEPARATOR . $postfix;
+        if ($dir !== null) {
+            $dir = rtrim($dir, "/\\") . DIRECTORY_SEPARATOR;
+
+            if ($postfix !== null) {
+                $dir .= $postfix . DIRECTORY_SEPARATOR;
+            }
         }
 
         if ($create && $dir !== null && !is_dir($dir)) {

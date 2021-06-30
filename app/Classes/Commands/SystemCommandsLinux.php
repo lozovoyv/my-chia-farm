@@ -52,7 +52,7 @@ class SystemCommandsLinux implements SystemCommands
      */
     public function killProcess(int $pid): void
     {
-        $command = "kill $pid";
+        $command = "pkill -P $pid && kill $pid";
 
         shell_exec($command);
     }

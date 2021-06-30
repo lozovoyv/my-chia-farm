@@ -26,7 +26,16 @@ export default {
 
     computed: {
         class_name: function () {
-            return this.align ? 'text-' + this.align : null
+            switch (this.align) {
+                case 'right':
+                    return 'text-right';
+                case 'center':
+                    return 'text-center';
+                case 'left':
+                    return 'text-left';
+            }
+
+            return null;
         }
     }
 }

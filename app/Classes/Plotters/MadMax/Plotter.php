@@ -85,9 +85,9 @@ class Plotter extends BasePlotter
         return $this->fillOptions($command, [
             '-f' => (string)$this->getArgument('-f', true, 'Farmer public key is empty'),
             '-p' => (string)$this->getArgument('-p', true, 'Pool public key is empty'),
-            '-t' => $this->getDir('-t', true, 'Temporary directory is not set.'),
-            '-2' => $this->getDir('-2'),
-            '-d' => $this->getDestination(),
+            '-t' => $this->getTempDir('-t', $this->postfix(), true, true, 'Temporary directory is not set.'),
+            '-2' => $this->getTempDir('-2', $this->postfix(), true),
+            '-d' => $this->getDir('-d', true, 'Destination path is empty'),
             '-r' => (int)$this->getArgument('-r'),
             '-u' => (int)$this->getArgument('-u'),
             '-v' => (int)$this->getArgument('-v'),

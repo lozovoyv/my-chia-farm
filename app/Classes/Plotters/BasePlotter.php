@@ -307,13 +307,13 @@ abstract class BasePlotter implements PlotterInterface
      * @param bool $required
      * @param array|string|null $message
      *
-     * @return  string
+     * @return string|null
      *
      * @throws  PlotterException
      *
      * @internal
      */
-    protected function getTempDir(string $key, ?string $postfix = null, bool $create = false, bool $required = false, array|string $message = null): string
+    protected function getTempDir(string $key, ?string $postfix = null, bool $create = false, bool $required = false, array|string $message = null): ?string
     {
         $dir = $this->getArgument($key, $required, $message);
 

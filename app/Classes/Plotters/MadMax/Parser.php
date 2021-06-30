@@ -67,7 +67,7 @@ class Parser extends BaseParser
         }
 
         $this->currentPhase = 1;
-        $this->currentStep = max(7, Processor::count('/Table\s\d/', $this->raw) + 1);
+        $this->currentStep = min(7, Processor::count('/Table\s\d/', $this->raw) + 1);
         $this->currentSubStep = null;
 
         return true;
@@ -180,7 +180,7 @@ class Parser extends BaseParser
         $step = intdiv($count + 2, 2);
         $sub = ($count) % 2 + 1;
 
-        $this->currentStep = max($step, 6);
+        $this->currentStep = min($step, 6);
         $this->currentSubStep = $step === 7 ? 2 : $sub;
     }
 

@@ -108,6 +108,7 @@ to date. Just push PR or:
 
 ### plotting:
 
+- Destination enhancements
 - Monitoring system resources in real-time (CPU, RAM, disks)
 - Job events throttling
 - Plot checking after plot is done

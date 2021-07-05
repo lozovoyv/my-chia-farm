@@ -8,10 +8,10 @@
   -->
 
 <template>
-    <label class="px-1.5 ml-2 h-6 outline-none align-top inline-block">
+    <label class="px-1.5 ml-2 h-6 outline-none align-top inline-block cursor-pointer">
         <input type="checkbox" :value="modelValue" v-model="proxyChecked"
-               class="w-5 h-5 box-border align-top top-px relative rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-white focus:ring-opacity-100">
-        <span class="ml-2 text-sm" v-if="title">{{ title }}</span>
+               class="w-5 h-5 rounded border-gray-300 text-green-600 dark:text-green-800 shadow-sm focus:border-gray-400 dark:focus:border-gray-300 focus:ring-offset-0 focus:ring-0 bg-transparent dark:border-gray-500">
+        <span class="ml-2 text-sm text-gray-600 dark:text-gray-300" v-if="title">{{ title }}</span>
     </label>
 </template>
 

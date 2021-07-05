@@ -9,7 +9,7 @@
 
 <template>
     <div class="px-6 my-4" :class="{'my-1.5 text-sm':!edit_mode}">
-        <p v-if="!hasEvents">No events defined</p>
+        <p class="text-gray-800 dark:text-gray-300" v-if="!hasEvents">No events defined</p>
 
         <datalist :id="'events-events-list-' + job_id" v-if="hasEvents && edit_mode">
             <option v-for="option in events_list">{{ option }}</option>
@@ -25,7 +25,7 @@
         />
 
         <div class="my-4" v-if="edit_mode">
-            <span class="text-sm cursor-pointer text-blue-600 underline" @click="addEvent">add event</span>
+            <span class="text-sm cursor-pointer text-blue-700 dark:text-blue-500 underline" @click="addEvent">add event</span>
         </div>
     </div>
 </template>

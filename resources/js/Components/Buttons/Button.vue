@@ -35,29 +35,29 @@ export default {
             // color themes
             switch (this.theme) {
                 case 'white':
-                    classes += ' bg-white text-gray-800';
+                    classes += ' bg-transparent text-gray-800 dark:text-gray-200';
                     break;
                 case 'green':
-                    classes += ' bg-green-500 text-white';
+                    classes += ' bg-green-500 dark:bg-green-600 text-white dark:text-gray-200';
                     break;
                 case 'blue':
-                    classes += ' bg-blue-500 text-white';
+                    classes += ' bg-blue-500 dark:bg-blue-600 text-white dark:text-gray-200';
                     break;
                 case 'red':
-                    classes += ' bg-red-500 text-white';
+                    classes += ' bg-red-500 dark:bg-red-600 text-white dark:text-gray-200';
                     break;
                 case 'yellow':
-                    classes += ' bg-yellow-500 text-white';
+                    classes += ' bg-yellow-500 dark:bg-yellow-600 text-white dark:text-gray-200';
                     break;
                 case 'default':
                 default:
-                    classes += ' bg-gray-500 text-white';
+                    classes += ' bg-gray-500 dark:bg-gray-600 text-white dark:text-gray-200';
             }
 
             if (this.disabled) {
                 classes += ' opacity-40 cursor-not-allowed';
             } else {
-                classes += ' hover:bg-indigo-900 active:bg-indigo-900 hover:text-white focus:shadow-outline-gray'
+                classes += ' hover:bg-indigo-900 dark:hover:bg-indigo-900 active:bg-indigo-900 dark:active:bg-indigo-900 hover:text-white dark:hover:text-gray-100 focus:shadow-outline-gray'
             }
 
             return classes;

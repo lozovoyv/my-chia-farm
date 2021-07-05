@@ -9,12 +9,12 @@
 
 <template>
     <div class="pt-2 pb-0.5">
-        <div class="w-full box-border px-6 py-2 bg-white">
+        <div class="w-full box-border px-6 py-2 bg-white dark:bg-gray-700">
             <div class="relative w-full pl-10">
-                <h2 class="mt-0.5">{{ title }}</h2>
-                <div class="text-sm text-gray-900">done {{ done }} of {{ total }}<span
+                <h2 class="mt-0.5 text-gray-900 dark:text-gray-300">{{ title }}</h2>
+                <div class="text-sm text-gray-900 dark:text-gray-300">done {{ done }} of {{ total }}<span
                     v-if="pending !==0">, pending {{ pending }}</span></div>
-                <span class="w-8 h-8 absolute left-0 top-1 block cursor-pointer text-green-400 hover:text-green-600"
+                <span class="w-8 h-8 absolute left-0 top-1 block cursor-pointer text-green-400 hover:text-green-600 dark:text-green-600 dark:hover:text-green-400"
                       title="Start new worker">
                     <icon-play class="w-full h-full" @click="start"/>
                 </span>

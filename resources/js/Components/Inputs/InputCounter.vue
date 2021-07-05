@@ -9,8 +9,8 @@
 
 <template>
     <div class="px-6 my-4">
-        <label class="block font-medium text-sm text-gray-700">
-            <span>{{ title }}: <span class="font-bold">{{ modelValue }}</span> (<span class="text-blue-700 cursor-pointer"
+        <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+            <span>{{ title }}: <span class="font-bold">{{ modelValue }}</span> (<span class="text-blue-700 dark:text-blue-500 cursor-pointer"
                                                       @click="$emit('update:modelValue',0)">reset</span>)</span>
         </label>
     </div>

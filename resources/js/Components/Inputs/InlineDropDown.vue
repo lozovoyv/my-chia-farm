@@ -9,13 +9,13 @@
 
 <template>
     <div
-        class="text-base h-6 align-top border ml-2 px-1.5 rounded-sm relative bg-white inline-block"
+        class="text-base h-6 align-top border ml-2 px-1.5 rounded-sm relative inline-block text-gray-800 dark:text-gray-300 bg-white dark:bg-gray-700"
         :class="classes"
     >
         <div @click="open = ! open" class="cursor-pointer">
                 <span class="h-6 inline-block rounded-md">
                     <span class="text-sm inline-block h-6 align-middle"
-                          :class="{'text-blue-700': !hasValue && valid, 'text-red-700':!valid}">{{
+                          :class="{'text-blue-700 dark:text-blue-500': !hasValue && valid, 'text-red-700 dark:text-red-400':!valid}">{{
                             displayValue
                         }}</span>
                     <icon-drop-down :class="'float-right h-6 w-5 align-top'"/>
@@ -37,8 +37,8 @@
                  class="absolute z-50 rounded-md shadow-lg origin-top-left left-0"
                  style="display: none;"
                  @click="open = false">
-                <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 bg-white">
-                    <p class="px-4 py-1 cursor-pointer hover:bg-green-300 whitespace-nowrap"
+                <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 bg-white dark:bg-gray-700">
+                    <p class="px-4 py-1 cursor-pointer hover:bg-green-300 dark:hover:bg-green-800 whitespace-nowrap"
                        v-for="(value, key) in values"
                        :key="key" @click="$emit('select', key)">{{ value }}</p>
                 </div>
@@ -93,8 +93,8 @@ export default {
 
         classes() {
             return this.valid ?
-                (this.open ? 'border-blue-500' : 'border-blue-300')
-                : (this.open ? 'border-red-500' : 'border-red-300')
+                (this.open ? 'border-blue-500 dark:border-gray-400' : 'border-blue-300 dark:border-gray-400')
+                : (this.open ? 'border-red-500' : 'border-red-300 dark:border-red-400')
         },
     },
 }

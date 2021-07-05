@@ -10,8 +10,8 @@
 <template>
     <m-c-f-big-card v-if="!deleted">
         <template #header>
-            <h3 v-if="title" class="font-semibold text-xl text-gray-800 leading-tight inline">{{ title }}</h3>
-            <span v-if="!creating && !editing" class="ml-2 text-blue-700 text-lg underline cursor-pointer"
+            <h3 v-if="title" class="font-semibold text-xl text-gray-800 dark:text-gray-300 leading-tight inline">{{ title }}</h3>
+            <span v-if="!creating && !editing" class="ml-2 text-blue-700 dark:text-blue-500 text-lg underline cursor-pointer"
                   @click="editing = true">edit</span>
             <icon-close v-if="!creating" :class="'inline float-right m-1'" @click="remove"/>
         </template>
@@ -129,12 +129,14 @@
                 <m-c-f-button :caption="'Cancel'" :theme="'white'" @click="discard"></m-c-f-button>
             </m-c-f-buttons>
         </div>
-        <div v-if="!editing" class="my-4">
+        <div v-if="!editing" class="my-4 text-gray-800 dark:text-gray-300">
             <m-c-f-line>Plots done: <b>{{ plots_done }}</b> of <b>{{ plots_to_do === 0 ? 'infinite' : plots_to_do }}</b>
             </m-c-f-line>
             <m-c-f-line>Plotter: <b>{{ d_plotter_name }}</b></m-c-f-line>
-            <m-c-f-line class="text-gray-700">{{ d_plotter_executable }} <span v-html="d_plotter_arguments"></span>
+            <div class="border-b border-gray-200 dark:border-gray-500"></div>
+            <m-c-f-line class="text-gray-800 dark:text-gray-300">{{ d_plotter_executable }} <span v-html="d_plotter_arguments"></span>
             </m-c-f-line>
+            <div class="border-b border-gray-200 dark:border-gray-500"></div>
             <m-c-f-line v-if="cpu_affinity_enable">Pinned cores: <b>{{ cpus.join(', ') }}</b></m-c-f-line>
             <m-c-f-line v-else>CPU affinity disabled</m-c-f-line>
             <m-c-f-line v-if="pre_command_enabled">Pre-process command: <b>{{ pre_command }}</b></m-c-f-line>
@@ -231,7 +233,7 @@ export default {
             return this.executable
         },
         d_plotter_arguments() {
-            if (this.plotter === null) return 'Plotter not specified';
+            if (this.plotter === null) return 'Plotter not set';
             let args = '';
             Object.keys(this.plotter['arguments']).map(key => {
                 let arg;
@@ -242,9 +244,9 @@ export default {
                 }
                 if (arg !== null) {
                     if (typeof arg === 'boolean') {
-                        args += ' <span class="font-bold text-blue-800">' + key + '</span>';
+                        args += ' <span class="font-bold text-blue-800 dark:text-blue-400">' + key + '</span>';
                     } else {
-                        args += ' <span class="font-bold text-blue-800">' + key + '</span> <span>' + arg + '</span>';
+                        args += ' <span class="font-bold text-blue-800 dark:text-blue-400">' + key + '</span> <span class="text-gray-800 dark:text-gray-300">' + arg + '</span>';
                     }
                 }
             });

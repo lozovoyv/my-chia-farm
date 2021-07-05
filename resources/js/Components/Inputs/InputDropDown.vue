@@ -9,10 +9,10 @@
 
 <template>
     <div class="px-6 my-4">
-        <div class="block font-medium text-sm text-gray-700">
+        <div class="block font-medium text-sm text-gray-700 dark:text-gray-300">
             <span v-if="title">{{ title }}</span>
             <div
-                class="text-base h-10 border border-gray-300 focus:border-indigo-300 px-3 py-2 rounded-md shadow-sm mt-1 block w-full relative bg-white">
+                class="text-base h-10 border border-gray-300 dark:border-gray-500 focus:border-indigo-300 px-3 py-2 rounded-md shadow-sm mt-1 block w-full relative bg-white dark:text-gray-300 dark:bg-gray-700">
                 <div @click="open = ! open" class="cursor-pointer">
                 <span class="h-6 inline-block w-full rounded-md">{{ caption }}
                     <svg class="float-right h-6 w-5" xmlns="http://www.w3.org/2000/svg"
@@ -39,14 +39,14 @@
                          class="absolute z-50 mt-2 rounded-md shadow-lg origin-top-left left-0 w-full"
                          style="display: none;"
                          @click="open = false">
-                        <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 bg-white">
-                            <p class="px-4 py-1 cursor-pointer hover:bg-green-300" v-for="(value, key) in options"
+                        <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 bg-white dark:bg-gray-700">
+                            <p class="px-4 py-1 cursor-pointer hover:bg-green-300 dark:hover:bg-green-800" v-for="(value, key) in options"
                                :key="key" @click="$emit('update:modelValue', key)">{{ value }}</p>
                         </div>
                     </div>
                 </transition>
             </div>
-            <span v-if="!valid" class="text-red-700 mr-1 mt-1 block">{{ errorMessage }}</span>
+            <span v-if="!valid" class="text-red-700 dark:text-red-400 mr-1 mt-1 block">{{ errorMessage }}</span>
         </div>
     </div>
 </template>

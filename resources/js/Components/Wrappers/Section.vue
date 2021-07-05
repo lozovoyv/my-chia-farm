@@ -8,9 +8,9 @@
   -->
 
 <template>
-    <div class="bg-white pb-4">
-        <div v-if="title" class="px-6 py-3 border-t border-gray-200">
-            <h4 class="font-semibold text-md text-gray-800 leading-tight">{{ title }}</h4>
+    <div class="pb-4">
+        <div v-if="title" class="px-6 py-3 border-t border-gray-200 dark:border-gray-600">
+            <h4 class="font-semibold text-md text-gray-800 dark:text-gray-300 leading-tight">{{ title }}</h4>
         </div>
         <slot></slot>
     </div>

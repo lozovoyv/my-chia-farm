@@ -8,7 +8,7 @@
   -->
 
 <template>
-    <div class="p-2 text-sm hover:bg-blue-100" v-if="edit_mode">
+    <div class="p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300" v-if="edit_mode">
         <span class="h-6 align-top ml-2 inline-block text-sm" style="line-height: 1.5rem">Fire</span>
         <!-- Event name -->
         <inline-input :required="true" :placeholder="'event name'" class="inline-block w-28" :valid="!!name"
@@ -43,7 +43,7 @@
 
         <icon-close :class="'inline float-right m-1'" @click="$emit('remove')"/>
     </div>
-    <div class="my-1.5 text-sm" v-else>
+    <div class="my-1.5 text-sm text-gray-800 dark:text-gray-300" v-else>
         <span>Fire <b>{{ name }}</b> on <b>{{ stages_list[stage] }}</b> </span>
         <span v-if="stage === 'PST'" class="ml-1 lowercase">- <b>{{
                 plotter_events[plotting_stage]

@@ -32,8 +32,8 @@
                          @update:modelValue="values.plotting.plotters[key]['executable'] = $event"
                          @validation="(state)=>{setValidation('plotting.plotters.'+key+'.executable', state)}"
             />
-            <div class="px-6 py-2 bg-white sm:rounded-lg border-b border-gray-200">
-                <h3 class="font-semibold text-lg text-gray-800 leading-tight">Defaults</h3>
+            <div class="px-6 py-2 border-b border-gray-200 dark:border-gray-600">
+                <h3 class="font-semibold text-lg text-gray-800 dark:text-gray-300 leading-tight">Defaults</h3>
             </div>
             <!-- arguments -->
             <m-c-f-input v-for="(arg, arg_key) in plotter['arguments']" :key="arg_key"

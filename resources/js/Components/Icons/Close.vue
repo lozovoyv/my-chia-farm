@@ -8,7 +8,7 @@
   -->
 
 <template>
-    <svg class="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700" xmlns="http://www.w3.org/2000/svg"
+    <svg class="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700 dark:text-red-700 dark:hover:text-red-500" xmlns="http://www.w3.org/2000/svg"
          viewBox="0 0 20 20" fill="currentColor"
     >
         <path fill-rule="evenodd"

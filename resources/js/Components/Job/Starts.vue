@@ -9,19 +9,19 @@
 
 <template>
     <div class="px-6 my-4" :class="{'my-1.5':!edit_mode}">
-        <p v-if="!hasStarts" :class="{'text-sm':!edit_mode}">No workers starts defined</p>
+        <p class="text-gray-800 dark:text-gray-300" v-if="!hasStarts" :class="{'text-sm':!edit_mode}">No workers starts defined</p>
         <datalist :id="'starts-events-list-'+job_id" v-if="hasStarts && edit_mode">
             <option v-for="option in events_list">{{ option }}</option>
         </datalist>
         <div v-if="hasStarts" v-for="(start, key) in modelValue" :key="key">
-            <div class="p-2 text-sm hover:bg-blue-100" v-if="edit_mode">
-                <span class="h-6 align-top inline-block" style="line-height: 1.5rem">Start</span>
+            <div class="p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600" v-if="edit_mode">
+                <span class="h-6 align-top inline-block text-gray-800 dark:text-gray-300" style="line-height: 1.5rem">Start</span>
                 <inline-input :required="true" :placeholder="'number of'"
                               :valid="isValid(key, 'number_of_workers')"
                               :modelValue="start['number_of_workers']"
                               @update:modelValue="val => updateStart(key, 'number_of_workers', val)"
                 />
-                <span class="h-6 align-top ml-2 inline-block" style="line-height: 1.5rem">worker(s) on</span>
+                <span class="h-6 align-top ml-2 inline-block text-gray-800 dark:text-gray-300" style="line-height: 1.5rem">worker(s) on</span>
                 <inline-input :required="true" :placeholder="'event name'" class="w-28"
                               :valid="isValid(key, 'event_name')"
                               :modelValue="start['event_name']"
@@ -30,7 +30,7 @@
                 />
                 <icon-close :class="'inline float-right m-1'" @click="removeStart(key)"/>
             </div>
-            <div class="text-sm my-1.5" v-if="!edit_mode">
+            <div class="text-sm my-1.5 text-gray-800 dark:text-gray-300" v-if="!edit_mode">
                 <span>Start </span>
                 <span class="font-bold ml-1">{{ start['number_of_workers'] }}</span>
                 <span class="ml-1">worker(s) on</span>
@@ -38,7 +38,7 @@
             </div>
         </div>
         <div class="my-4" v-if="edit_mode">
-            <span class="text-sm cursor-pointer text-blue-600 underline" @click="addStart">add worker start</span>
+            <span class="text-sm cursor-pointer text-blue-700 dark:text-blue-500 underline" @click="addStart">add worker start</span>
         </div>
     </div>
 </template>

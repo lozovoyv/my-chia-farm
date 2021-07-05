@@ -10,7 +10,7 @@
 <template>
     <div>
         <m-c-f-input :type="'bool'" v-model="proxyUseDefault" :title="default_caption">
-            <span class="text-sm" :class="{'text-red-700':!defaultValid}" v-if="proxyUseDefault">: {{
+            <span class="text-sm text-gray-900 dark:text-gray-300" :class="{'text-red-700 dark:text-red-400':!defaultValid}" v-if="proxyUseDefault">: {{
                     defaultValid ? (empty(default_value) ? 'not set' : default_value) : errorDefaultMessage
                 }}</span>
         </m-c-f-input>

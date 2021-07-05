@@ -10,11 +10,12 @@
 <template>
     <div class="my-2 w-full">
         <div class="relative h-6 pr-8">
-            <div class="relative bg-gray-100 h-6">
-                <div class="absolute top-0 left-0 h-full bg-green-200 z-0" :class="{'bg-red-200': has_error}"
+            <div class="relative bg-gray-100 dark:bg-gray-600 h-6">
+                <div class="absolute top-0 left-0 h-full z-0"
+                     :class="[has_error ? 'bg-red-200 dark:bg-red-700' : 'bg-green-200 dark:bg-green-700']"
                      :style="{'width': progress + '%'}"></div>
                 <div class="text-sm absolute top-0 left-0 w-full h-full py-1 px-2">
-                    <p class="text-gray-800">{{ progress }}%</p>
+                    <p class="text-gray-800 dark:text-gray-300">{{ progress }}%</p>
                 </div>
             </div>
             <span class="w-4 h-4 absolute top-1 right-1 cursor-pointer text-red-400 hover:text-red-700" title="Dismiss">
@@ -22,16 +23,16 @@
             </span>
         </div>
         <div v-if="!is_killing">
-            <p class="text-gray-600 text-sm mr-2 inline-block">#{{ id }}</p>
-            <p class="text-gray-600 text-sm mr-2 inline-block">pid: {{ pid }}</p>
-            <p class="text-gray-600 text-sm mr-2 inline-block">started: {{ created_at }}</p>
-            <p class="text-gray-600 text-sm mr-2 inline-block" v-if="!has_error">{{ status }}</p>
-            <p class="text-red-600 text-sm mr-2 inline-block" v-if="has_error">{{ error }}</p>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mr-2 inline-block">#{{ id }}</p>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mr-2 inline-block">pid: {{ pid }}</p>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mr-2 inline-block">started: {{ created_at }}</p>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mr-2 inline-block" v-if="!has_error">{{ status }}</p>
+            <p class="text-red-700 dark:text-red-400 text-sm mr-2 inline-block" v-if="has_error">{{ error }}</p>
         </div>
         <div v-if="is_killing">
-            <p class="text-gray-600 text-sm mr-2 inline-block">#{{ id }}</p>
-            <p class="text-gray-600 text-sm mr-2 inline-block">pid: {{ pid }}</p>
-            <p class="text-red-700 text-sm mr-2 inline-block">killing process</p>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mr-2 inline-block">#{{ id }}</p>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mr-2 inline-block">pid: {{ pid }}</p>
+            <p class="text-red-700 dark:text-red-400 text-sm mr-2 inline-block">killing process</p>
         </div>
     </div>
 </template>

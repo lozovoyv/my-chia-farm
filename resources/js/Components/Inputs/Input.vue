@@ -16,6 +16,7 @@
                :options="options"
                :valid="valid"
                :errorMessage="errorMessage"
+               :autocomplete="autocomplete"
     >
         <slot/>
     </component>
@@ -42,6 +43,7 @@ export default {
         options: {type: [Array, Object], default: () => ([])},
         inputType: {type: String, default: null},
         errorMessage: {type: String, default: 'This field must be filled'},
+        autocomplete: {type: String, default: null},
     },
 
     emits: ['update:modelValue', 'validation'],

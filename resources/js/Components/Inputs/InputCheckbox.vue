@@ -9,11 +9,11 @@
 
 <template>
     <div class="px-6 my-4">
-        <label>
+        <label class="cursor-pointer">
             <input type="checkbox" :value="modelValue" v-model="proxyChecked"
-                   class="w-5 h-5 rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-white focus:ring-opacity-100">
-            <span class="ml-2 text-sm text-gray-600" v-if="title">{{ title }}</span><slot/>
-            <span v-if="!valid" class="text-red-700 mr-1 mt-1 block">{{ errorMessage }}</span>
+                   class="w-5 h-5 cursor-pointer rounded border-gray-300 text-green-600 dark:text-green-800 shadow-sm focus:border-gray-400 dark:focus:border-gray-300 focus:ring-offset-0 focus:ring-0 bg-transparent dark:border-gray-500">
+            <span class="ml-2 text-sm text-gray-600 dark:text-gray-300" v-if="title">{{ title }}</span><slot/>
+            <span v-if="!valid" class="text-red-700 dark:text-red-400 mr-1 mt-1 block">{{ errorMessage }}</span>
         </label>
     </div>
 </template>

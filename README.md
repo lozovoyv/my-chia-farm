@@ -3,7 +3,7 @@
 MyChiaFarm is a web application created to give you control on your chia-blockchain farm from everywhere over the
 internet with nice GUI.
 
-##[Documentations and descriptions](docs/README.md)
+[Documentations and descriptions](docs/README.md)
 
 ## Bugs and issues
 

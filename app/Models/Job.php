@@ -369,7 +369,7 @@ class Job extends Model
         if ($number >= 1) {
             $number--;
             $this->setAttribute('number_of_worker_logs', $number);
-            $this->setAttribute('save_worker_monitor_log', $number !== 0);
+            $this->setAttribute('save_worker_log', $number !== 0);
             $this->save();
 
             return true;

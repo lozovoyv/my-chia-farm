@@ -22,7 +22,8 @@ class Plotter extends BasePlotter
     /** @var array Arguments list applicable to this plotting command. */
     protected static array $argumentsList = [
         '-f' => ['type' => 'string', 'required' => true, 'title' => 'Hex farmer public key'],
-        '-p' => ['type' => 'string', 'required' => true, 'title' => 'Hex public key of pool'],
+        '-c' => ['type' => 'string', 'required' => false, 'title' => 'Pool contract address'],
+        '-p' => ['type' => 'string', 'required' => false, 'title' => 'Hex public key of pool'],
         '-t' => ['type' => 'string', 'required' => true, 'title' => 'Temporary directory for plotting files'],
         '-2' => ['type' => 'string', 'required' => false, 'title' => 'Second temporary directory for plotting files'],
         '-d' => ['type' => 'string', 'required' => true, 'title' => 'Final directory for plots'],
@@ -37,6 +38,7 @@ class Plotter extends BasePlotter
     /** @var array Arguments defaults applicable to this plotting command. */
     protected static array $argumentsDefaults = [
         '-f' => null,
+        '-c' => null,
         '-p' => null,
         '-t' => null,
         '-2' => null,
@@ -52,6 +54,7 @@ class Plotter extends BasePlotter
     /** @var array|string[] Keys association with global defaults */
     protected static array $globalDefaultsAssociations = [
         '-f' => 'plotting.globals.farmer_key',
+        '-c' => 'plotting.globals.pool_contract',
         '-p' => 'plotting.globals.pool_key',
         '-t' => 'plotting.globals.temp_dir',
         '-2' => 'plotting.globals.temp2_dir',
@@ -92,7 +95,8 @@ class Plotter extends BasePlotter
 
         return $this->fillOptions($command, [
             '-f' => (string)$this->getArgument('-f', true, 'Farmer public key is empty'),
-            '-p' => (string)$this->getArgument('-p', true, 'Pool public key is empty'),
+            '-p' => (string)$this->getArgument('-p', !$this->hasArgument('-c'), 'Both pool contract address and pool public key is empty'),
+            '-c' => (string)$this->getArgument('-c', !$this->hasArgument('-p'), 'Both pool contract address and pool public key is empty'),
             '-t' => $this->getTempDir('-t', $this->postfix(), true, true, 'Temporary directory is not set.'),
             '-2' => $this->getTempDir('-2', $this->postfix(), true),
             '-d' => $this->getDir('-d', true, 'Destination path is empty'),

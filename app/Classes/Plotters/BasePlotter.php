@@ -275,6 +275,18 @@ abstract class BasePlotter implements PlotterInterface
     }
 
     /**
+     * Check argument exists and filled.
+     *
+     * @param string $key
+     *
+     * @return  bool
+     */
+    protected function hasArgument(string $key): bool
+    {
+        return isset($this->arguments[$key]);
+    }
+
+    /**
      * Get directory from argument with checking in can be null.
      *
      * @param string $key

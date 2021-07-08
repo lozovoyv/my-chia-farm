@@ -82,6 +82,7 @@ class SettingsPageController extends Controller
         return [
             'farmer_key' => ['type' => 'string', 'required' => false, 'title' => 'Hex farmer public key'],
             'pool_key' => ['type' => 'string', 'required' => false, 'title' => 'Hex public key of pool'],
+            'pool_contract' => ['type' => 'string', 'required' => false, 'title' => 'Pool contract address'],
             'temp_dir' => ['type' => 'string', 'required' => false, 'title' => 'Temporary directory for plotting files'],
             'temp2_dir' => ['type' => 'string', 'required' => false, 'title' => 'Second temporary directory for plotting files'],
             'dest_dir' => ['type' => 'string', 'required' => false, 'title' => 'Final directory for plots'],

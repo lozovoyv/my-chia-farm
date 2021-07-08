@@ -446,7 +446,7 @@ abstract class BasePlotter implements PlotterInterface
                 continue;
             }
 
-            $command .= $value !== null
+            $command .= !empty($value)
                 ? sprintf(' %s%s%s',
                     $key,
                     $keyValueSeparator,

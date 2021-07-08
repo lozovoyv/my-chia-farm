@@ -72,7 +72,9 @@ class SystemCommandsLinux implements SystemCommands
             return $command;
         }
 
-        return 'taskset -c ' . implode(',', $cores) . " $command";
+        $command = str_replace('"', '\"', $command);
+
+        return 'taskset -c ' . implode(',', $cores) . " sh -c \"$command\"";
     }
 
     /**
@@ -91,7 +93,7 @@ class SystemCommandsLinux implements SystemCommands
             $output = '/dev/null';
         }
 
-        $command = str_replace('"', '\"', $command);
+        $command = str_replace(['\"', '"'], '\"', $command);
         $command = "nohup sh -c \"$command\" >> $output 2>&1 </dev/null & printf \"%u\" $!";
 
         Log::debug(sprintf('Running command: %s', $command));

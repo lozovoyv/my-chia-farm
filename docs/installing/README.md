@@ -23,6 +23,8 @@ php artisan init
 Also, you can set up apache/nginx web server pointing to `my-chia-farm/public` and add LetsEncrypt certificate to secure
 your connection.
 
+Once you set up application and added its starter to cron no matter running you web server or not (local or apache/nginx) application would be working on cron events. Web server is needed to handle web-interface.
+
 ## First run
 
 After you installed and launched My Chia Farm go to `settings` page and set executables for plotters (typically, for

@@ -23,7 +23,7 @@ class Plotter extends BasePlotter
     protected static array $argumentsList = [
         '-f' => ['type' => 'string', 'required' => true, 'title' => 'Hex farmer public key'],
         '-c' => ['type' => 'string', 'required' => false, 'title' => 'Pool contract address'],
-        '-p' => ['type' => 'string', 'required' => true, 'title' => 'Hex public key of pool'],
+        '-p' => ['type' => 'string', 'required' => false, 'title' => 'Hex public key of pool'],
         '-t' => ['type' => 'string', 'required' => true, 'title' => 'Temporary directory, needs ~220 GiB'],
         '-2' => ['type' => 'string', 'required' => false, 'title' => 'Temporary directory 2, needs ~110 GiB [RAM] (default = -t)'],
         '-d' => ['type' => 'string', 'required' => true, 'title' => 'Final directory'],
